@@ -798,9 +798,9 @@
     <section id="sec-projection" class="section-anchor">
       <div class="sec-head">
         <div class="sec-title-wrap">
-          <span class="eyebrow">確定性精算推估模型</span>
+          <span class="eyebrow">自訂參數試算模型（簡化群體模型，非官方逐人精算）</span>
           <h2>🧮 精算假設參數設定與敏感性分析</h2>
-          <p class="subdesc">可自由切換 PUC / EAN / TUC 成本法並微調人口、薪資、折現率與報酬率參數，即時觀察未來 50 年資產負債與敏感度衝擊。</p>
+          <p class="subdesc">以群體平均精算模型供教學與假設敏感度試算；實際基金財務請以上方官方精算報告及政策模擬中心為準。</p>
         </div>
       </div>
 
@@ -1083,13 +1083,13 @@
       let a = v('active');
       let age = v('age');
       const svc = v('service');
-      let salary = v('salary') / 10;
+      let salary = v('salary');
       let ret = v('retired');
       let rAge = v('retiredAge');
-      let pension = v('pension') / 10;
+      let pension = v('pension');
       const retAge = v('retAge');
       const entryAge = v('entryAge');
-      const entrySalary = v('entrySalary') / 10;
+      const entrySalary = v('entrySalary');
       const newE = v('newEntrants');
       const accr = p('accrual');
       const maxRep = p('maxReplace');
@@ -1360,8 +1360,8 @@
       $('funded').textContent = fmt(num('assets') / r.aal * 100) + '%';
       $('adcRate').textContent = fmt(r.adc * 100) + '%';
       const d = rows.find(x => x.assets < 0);
-      $('deplete').textContent = d ? d.year + '年' : '期間內未用罄';
       const last = rows.at(-1);
+      $('deplete').textContent = d ? d.year + '年' : `至 ${last.year} 年未用罄`;
       $('ending').textContent = fmt(last.assets) + ' 億元';
       $('ending').className = 'v ' + (last.assets < 0 ? 'neg' : 'pos');
       $('methodTag').textContent = $('method').selectedOptions[0].text;
@@ -1418,7 +1418,8 @@
       lastStressCases = defs.map(([name, o]) => {
         const r = calc(o);
         const d = r.rows.find(x => x.assets < 0);
-        return { name, aal: r.aal, adc: r.adc, dep: d ? d.year + '年' : '期間內未用罄' };
+        const lastY = r.rows.at(-1).year;
+        return { name, aal: r.aal, adc: r.adc, dep: d ? d.year + '年' : `至 ${lastY} 年未用罄` };
       });
       $('stressBody').innerHTML = lastStressCases.map(c =>
         `<tr><td>${c.name}</td><td>${fmt(c.aal)}</td><td>${fmt(num('assets') / c.aal * 100)}%</td><td>${fmt(c.adc * 100)}%</td><td>${c.dep}</td></tr>`
@@ -1728,6 +1729,7 @@
       const dEnd = altRes.rows.at(-1).assets - baseRes.rows.at(-1).assets;
       const baseDep = baseRes.rows.find(x => x.assets < 0);
       const altDep = altRes.rows.find(x => x.assets < 0);
+      const varLastY = baseRes.rows.at(-1).year;
 
       detailEl.innerHTML = `
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
@@ -1754,7 +1756,7 @@
           </div>
         </div>
         <div style="font-size:12px;color:#64748b">
-          基準用罄：<b>${baseDep ? baseDep.year + '年' : '期間內未用罄'}</b> → 變動後：<b>${altDep ? altDep.year + '年' : '期間內未用罄'}</b>
+          基準用罄：<b>${baseDep ? baseDep.year + '年' : `至 ${varLastY} 年未用罄`}</b> → 變動後：<b>${altDep ? altDep.year + '年' : `至 ${varLastY} 年未用罄`}</b>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button type="button" class="pri" onclick="$('sec-policy').scrollIntoView({behavior:'smooth'})">前往政策模擬中心</button>
@@ -2094,18 +2096,18 @@
         const bd = b.find(x => x.ending < 0);
         const pd = policyRows.find(x => x.ending < 0);
         const last = policyRows.at(-1);
-        $('polBaseDep').textContent = bd ? bd.year + '年' : '期間內未用罄';
+        $('polBaseDep').textContent = bd ? bd.year + '年' : `至 ${last.year} 年未用罄`;
         let polDepTxt = '';
         if (bd && pd) {
           const diffY = pd.year - bd.year;
           const tag = diffY > 0 ? `延後 ${diffY} 年` : diffY < 0 ? `提前 ${Math.abs(diffY)} 年` : '持平';
           polDepTxt = `${pd.year}年（${tag}）`;
         } else if (bd && !pd) {
-          polDepTxt = `期間內未用罄（延後 ≥ ${last.year - bd.year} 年）`;
+          polDepTxt = `至 ${last.year} 年未用罄（延後 ≥ ${last.year - bd.year} 年）`;
         } else if (!bd && pd) {
           polDepTxt = `${pd.year}年（提前用罄）`;
         } else {
-          polDepTxt = '期間內未用罄（持平）';
+          polDepTxt = `至 ${last.year} 年未用罄（持平）`;
         }
         $('polDep').textContent = polDepTxt;
         $('polDep').className = 'v ' + (pd ? 'neg' : 'pos');
