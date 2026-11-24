@@ -247,6 +247,9 @@
       grid-template-columns: repeat(5, 1fr);
       gap: 10px;
     }
+    .kpis-4 {
+      grid-template-columns: repeat(4, 1fr);
+    }
     .kpi {
       background: #f8fafc;
       border: 1px solid var(--line);
@@ -773,12 +776,11 @@
         <button class="sec" type="button" onclick="exportPolicy()">匯出結果 CSV</button>
       </div>
 
-      <div class="kpis" style="margin-top:16px">
+      <div class="kpis kpis-4" style="margin-top:16px">
         <div class="kpi"><div class="l">基準用罄年度</div><div class="v" id="polBaseDep">-</div></div>
         <div class="kpi"><div class="l">政策後用罄年度</div><div class="v" id="polDep">-</div></div>
         <div class="kpi"><div class="l">政策期末餘額</div><div class="v" id="polEnd">-</div></div>
         <div class="kpi"><div class="l">累計政府成本</div><div class="v" id="polCost">-</div></div>
-        <div class="kpi"><div class="l">延後年數</div><div class="v" id="polDelay">-</div></div>
       </div>
 
       <div class="chart-tall" style="margin-top:16px"><canvas id="policyChart"></canvas></div>
@@ -2109,10 +2111,6 @@
         $('polEnd').textContent = fmt(last.ending) + ' 億元';
         $('polEnd').className = 'v ' + (last.ending < 0 ? 'neg' : 'pos');
         $('polCost').textContent = fmt(cost) + ' 億元';
-        const delayTxt = !bd
-          ? (pd ? '提前用罄' : '皆未用罄')
-          : (pd ? (pd.year - bd.year) + ' 年' : '≥ ' + (last.year - bd.year) + ' 年');
-        $('polDelay').textContent = delayTxt;
 
         $('policyBody').innerHTML = policyRows.map(x =>
           `<tr>
