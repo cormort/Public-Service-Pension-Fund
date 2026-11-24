@@ -713,11 +713,11 @@
         <span class="presets-label">快速情境：</span>
         <button type="button" class="chip active" onclick="applyPolicyPreset('base', this)">↺ 重置為基準</button>
         <button type="button" class="chip" onclick="applyPolicyPreset('contrib2', this)">提撥率 +2%</button>
-        <button type="button" class="chip" onclick="applyPolicyPreset('sub300', this)">年撥補 300 億</button>
-        <button type="button" class="chip" onclick="applyPolicyPreset('sub500', this)">年撥補 500 億</button>
+        <button type="button" class="chip" onclick="applyPolicyPreset('sub300', this)">年撥補 300 億元</button>
+        <button type="button" class="chip" onclick="applyPolicyPreset('sub500', this)">年撥補 500 億元</button>
         <button type="button" class="chip" onclick="applyPolicyPreset('ret1', this)">投報率 +1%</button>
         <button type="button" class="chip" onclick="applyPolicyPreset('entrants100', this)">新進 100% 回流</button>
-        <button type="button" class="chip" onclick="applyPolicyPreset('combo', this)">綜合改革（+2% 提撥 + 200 億）</button>
+        <button type="button" class="chip" onclick="applyPolicyPreset('combo', this)">綜合改革（+2% 提撥 + 200 億元）</button>
       </div>
 
       <div class="fields-4">
@@ -1348,13 +1348,13 @@
     function run() {
       const r = calc();
       rows = r.rows;
-      $('aal').textContent = fmt(r.aal) + ' 億';
+      $('aal').textContent = fmt(r.aal) + ' 億元';
       $('funded').textContent = fmt(num('assets') / r.aal * 100) + '%';
       $('adcRate').textContent = fmt(r.adc * 100) + '%';
       const d = rows.find(x => x.assets < 0);
       $('deplete').textContent = d ? d.year + '年' : '期間內未用罄';
       const last = rows.at(-1);
-      $('ending').textContent = fmt(last.assets) + ' 億';
+      $('ending').textContent = fmt(last.assets) + ' 億元';
       $('ending').className = 'v ' + (last.assets < 0 ? 'neg' : 'pos');
       $('methodTag').textContent = $('method').selectedOptions[0].text;
       renderTable();
@@ -1467,7 +1467,7 @@
 
       $('heroLiab').textContent = fmt(r9.liab) + ' 億元';
       $('heroLiabSub').textContent = `未提存精算負債 ${fmt(r9.ual)} 億元`;
-      $('heroLiabDiff').textContent = `較第8次（${fmt(r8.liab)} 億）增加 ${fmt(liabDiff)} 億（+${liabPct}%）`;
+      $('heroLiabDiff').textContent = `較第8次（${fmt(r8.liab)} 億元）增加 ${fmt(liabDiff)} 億元（+${liabPct}%）`;
 
       $('heroAsset').textContent = fmt(r9.asset) + ' 億元';
       $('heroAssetSub').textContent = `已提存比率 ${r9.funded}%（資產 ÷ 負債）`;
@@ -1603,18 +1603,18 @@
       $('cmpGrid').innerHTML = `
         <div class="cmp-card">
           <div class="l">精算負債 AAL 變化</div>
-          <div class="v ${dLiab > 0 ? 'neg' : 'pos'}">${dLiab >= 0 ? '+' : ''}${fmt(dLiab)} 億</div>
-          <div class="s">變動幅度 ${dLiab >= 0 ? '+' : ''}${pLiab}%（${fmt(rA.liab)} → ${fmt(rB.liab)}）</div>
+          <div class="v ${dLiab > 0 ? 'neg' : 'pos'}">${dLiab >= 0 ? '+' : ''}${fmt(dLiab)} 億元</div>
+          <div class="s">變動幅度 ${dLiab >= 0 ? '+' : ''}${pLiab}%（${fmt(rA.liab)} → ${fmt(rB.liab)} 億元）</div>
         </div>
         <div class="cmp-card">
           <div class="l">已提存基金與提存比率差</div>
-          <div class="v ${dAsset >= 0 ? 'pos' : 'neg'}">${dAsset >= 0 ? '+' : ''}${fmt(dAsset)} 億</div>
+          <div class="v ${dAsset >= 0 ? 'pos' : 'neg'}">${dAsset >= 0 ? '+' : ''}${fmt(dAsset)} 億元</div>
           <div class="s">提存率 ${rA.funded}% → ${rB.funded}%（${dFunded >= 0 ? '+' : ''}${dFunded} 個百分點）</div>
         </div>
         <div class="cmp-card">
           <div class="l">未提存負債變化</div>
-          <div class="v ${dUal > 0 ? 'neg' : 'pos'}">${dUal >= 0 ? '+' : ''}${fmt(dUal)} 億</div>
-          <div class="s">${fmt(rA.ual)} 億 → ${fmt(rB.ual)} 億</div>
+          <div class="v ${dUal > 0 ? 'neg' : 'pos'}">${dUal >= 0 ? '+' : ''}${fmt(dUal)} 億元</div>
+          <div class="s">${fmt(rA.ual)} 億元 → ${fmt(rB.ual)} 億元</div>
         </div>
         <div class="cmp-card">
           <div class="l">預估基金用罄年度變化</div>
@@ -1723,7 +1723,7 @@
         <div class="var-metrics">
           <div class="var-metric">
             <div class="l">精算負債 AAL 變化</div>
-            <div class="v ${dAal > 0.05 ? 'neg' : dAal < -0.05 ? 'pos' : ''}">${dAal >= 0 ? '+' : ''}${fmt(dAal)} 億</div>
+            <div class="v ${dAal > 0.05 ? 'neg' : dAal < -0.05 ? 'pos' : ''}">${dAal >= 0 ? '+' : ''}${fmt(dAal)} 億元</div>
           </div>
           <div class="var-metric">
             <div class="l">建議提撥率變化</div>
@@ -1731,7 +1731,7 @@
           </div>
           <div class="var-metric">
             <div class="l">期末資產 / 用罄影響</div>
-            <div class="v ${dEnd >= 0 ? 'pos' : 'neg'}">${dEnd >= 0 ? '+' : ''}${fmt(dEnd)} 億</div>
+            <div class="v ${dEnd >= 0 ? 'pos' : 'neg'}">${dEnd >= 0 ? '+' : ''}${fmt(dEnd)} 億元</div>
           </div>
         </div>
         <div style="font-size:12px;color:#64748b">
@@ -2070,11 +2070,23 @@
         const pd = policyRows.find(x => x.ending < 0);
         const last = policyRows.at(-1);
         $('polBaseDep').textContent = bd ? bd.year + '年' : '期間內未用罄';
-        $('polDep').textContent = pd ? pd.year + '年' : '期間內未用罄';
+        let polDepTxt = '';
+        if (bd && pd) {
+          const diffY = pd.year - bd.year;
+          const tag = diffY > 0 ? `延後 ${diffY} 年` : diffY < 0 ? `提前 ${Math.abs(diffY)} 年` : '持平';
+          polDepTxt = `${pd.year}年（${tag}）`;
+        } else if (bd && !pd) {
+          polDepTxt = `期間內未用罄（延後 ≥ ${last.year - bd.year} 年）`;
+        } else if (!bd && pd) {
+          polDepTxt = `${pd.year}年（提前用罄）`;
+        } else {
+          polDepTxt = '期間內未用罄（持平）';
+        }
+        $('polDep').textContent = polDepTxt;
         $('polDep').className = 'v ' + (pd ? 'neg' : 'pos');
-        $('polEnd').textContent = fmt(last.ending) + ' 億';
+        $('polEnd').textContent = fmt(last.ending) + ' 億元';
         $('polEnd').className = 'v ' + (last.ending < 0 ? 'neg' : 'pos');
-        $('polCost').textContent = fmt(cost) + ' 億';
+        $('polCost').textContent = fmt(cost) + ' 億元';
         const delayTxt = !bd
           ? (pd ? '提前用罄' : '皆未用罄')
           : (pd ? (pd.year - bd.year) + ' 年' : '≥ ' + (last.year - bd.year) + ' 年');
