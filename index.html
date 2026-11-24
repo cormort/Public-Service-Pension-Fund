@@ -1,0 +1,2244 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>退撫基金精算決策支援系統 V4（第7至第9次精算報告分析與政策模擬）</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --indigo: #4f46e5;
+      --indigo-soft: #eef2ff;
+      --emerald: #059669;
+      --emerald-soft: #ecfdf5;
+      --rose: #e11d48;
+      --rose-soft: #fff1f2;
+      --amber: #d97706;
+      --amber-soft: #fffbeb;
+      --slate-soft: #f1f5f9;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: "Inter", "Noto Sans TC", "Microsoft JhengHei", -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Top Sticky White Header */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+    .topbar-inner {
+      max-width: 1480px;
+      margin: auto;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 16px;
+      box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25);
+      flex-shrink: 0;
+    }
+    .brand h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+    .brand p {
+      margin: 2px 0 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .nav-pills {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .nav-btn {
+      padding: 7px 13px;
+      border-radius: 999px;
+      background: #f1f5f9;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+    }
+    .nav-btn:hover {
+      background: #e2e8f0;
+      color: var(--text);
+    }
+    .nav-btn.active {
+      background: var(--indigo);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
+    }
+
+    /* Layout & Cards */
+    .wrap {
+      max-width: 1480px;
+      margin: auto;
+      padding: 22px 20px 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .section-anchor { scroll-margin-top: 76px; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 4px 16px rgba(15, 23, 42, 0.02);
+    }
+    .sec-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    .sec-title-wrap { display: flex; flex-direction: column; gap: 4px; }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      width: fit-content;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: var(--indigo-soft);
+      color: var(--indigo);
+      font-size: 11px;
+      font-weight: 700;
+    }
+    h2 {
+      margin: 0;
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--text);
+    }
+    h3 {
+      margin: 16px 0 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--line);
+      font-size: 14px;
+      font-weight: 700;
+      color: #334155;
+    }
+    .subdesc {
+      margin: 0;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--rose-soft);
+      border: 1px solid #fecdd3;
+      color: #be123c;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--rose);
+    }
+
+    /* Segmented group switcher */
+    .seg {
+      display: inline-flex;
+      background: #f1f5f9;
+      padding: 3px;
+      border-radius: 10px;
+      gap: 2px;
+    }
+    .seg button {
+      padding: 6px 12px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: #475569;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .seg button.active {
+      background: #fff;
+      color: var(--indigo);
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+    }
+
+    /* Hero KPI Grid */
+    .hero-kpis {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+    .hero-kpi {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .hero-kpi:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(15, 23, 42, 0.05);
+    }
+    .hero-kpi .l { font-size: 12px; font-weight: 600; color: var(--muted); }
+    .hero-kpi .v { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; color: var(--text); }
+    .hero-kpi .v.rose { color: var(--rose); }
+    .hero-kpi .v.amber { color: var(--amber); }
+    .hero-kpi .v.indigo { color: var(--indigo); }
+    .hero-kpi .v.emerald { color: var(--emerald); }
+    .hero-kpi .s { font-size: 12px; color: #475569; line-height: 1.45; }
+    .hero-kpi .d { font-size: 11px; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 6px; margin-top: auto; }
+
+    /* Compact KPIs */
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+    }
+    .kpi {
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+    .kpi .l { font-size: 12px; font-weight: 600; color: var(--muted); }
+    .kpi .v { font-size: 20px; font-weight: 800; color: var(--text); margin-top: 4px; }
+    .kpi .s { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    /* Forms, Buttons, Chips */
+    .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .fields-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: #334155;
+    }
+    .field input, .field select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font: inherit;
+      font-size: 13px;
+      color: var(--text);
+      background: #fff;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .field input:focus, .field select:focus {
+      outline: none;
+      border-color: var(--indigo);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+    }
+    .full { grid-column: 1 / -1; }
+    .buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .buttons-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+    button {
+      padding: 9px 14px;
+      border: 0;
+      border-radius: 9px;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .pri { background: var(--indigo); color: #fff; }
+    .pri:hover { background: #4338ca; }
+    .sec { background: #f1f5f9; color: #334155; border: 1px solid #e2e8f0; }
+    .sec:hover { background: #e2e8f0; }
+
+    /* Preset Scenario Chips */
+    .presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding: 12px;
+      border-radius: 12px;
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      align-items: center;
+    }
+    .presets-label { font-size: 12px; font-weight: 700; color: #475569; margin-right: 4px; }
+    .chip {
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: #fff;
+      border: 1px solid #cbd5e1;
+      color: #334155;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .chip:hover { border-color: var(--indigo); color: var(--indigo); }
+    .chip.active, .chip.active:hover {
+      background: var(--indigo);
+      border-color: var(--indigo);
+      color: #fff;
+    }
+
+    /* Charts & Grids */
+    .layout { display: grid; grid-template-columns: 340px 1fr; gap: 16px; align-items: start; }
+    .panel {
+      position: sticky;
+      top: 76px;
+      max-height: calc(100vh - 92px);
+      overflow: auto;
+    }
+    .charts { display: grid; grid-template-columns: 3fr 2fr; gap: 14px; margin-top: 14px; }
+    .chart { height: 320px; position: relative; }
+    .chart-tall { height: 360px; position: relative; }
+    canvas { width: 100%; height: 100%; display: block; }
+    .two-col { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; align-items: start; }
+
+    /* Tables */
+    .scroll {
+      overflow: auto;
+      max-height: 440px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+    }
+    table { border-collapse: collapse; width: 100%; font-size: 12px; white-space: nowrap; }
+    th, td { padding: 9px 11px; border-bottom: 1px solid #f1f5f9; text-align: right; }
+    th {
+      position: sticky;
+      top: 0;
+      background: #f8fafc;
+      color: #334155;
+      font-weight: 700;
+      border-bottom: 1px solid var(--line);
+      z-index: 2;
+    }
+    tbody tr:hover { background: #f8fafc; }
+    th:first-child, td:first-child { text-align: center; }
+    .neg { color: var(--rose); font-weight: 600; }
+    .pos { color: var(--emerald); font-weight: 600; }
+    .warn { color: var(--amber); font-weight: 600; }
+    .tag {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--emerald-soft);
+      color: var(--emerald);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .subtle { font-size: 11px; color: var(--muted); line-height: 1.5; margin-top: 6px; }
+    .method { font-size: 12px; line-height: 1.7; color: #475569; margin-top: 14px; }
+    .method summary { cursor: pointer; font-weight: 700; color: var(--text); }
+    .info-box {
+      background: var(--indigo-soft);
+      border: 1px solid #c7d2fe;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 12px;
+      line-height: 1.65;
+      color: #312e81;
+    }
+    .info-box h4 { margin: 0 0 8px; font-size: 13px; color: #1e1b4b; }
+    .info-box ul { margin: 0; padding-left: 16px; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      z-index: 100;
+      max-width: 390px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      background: #0f172a;
+      color: #fff;
+      font-size: 13px;
+      line-height: 1.5;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.25);
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .toast.error { background: #be123c; }
+
+    /* Period Comparison, Variable Explorer, Sliders & Synthesis */
+    .cmp-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+      padding: 12px 14px;
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+    .cmp-bar select {
+      padding: 6px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font: inherit;
+      font-size: 13px;
+      background: #fff;
+    }
+    .cmp-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .cmp-card {
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+    .cmp-card .l { font-size: 12px; font-weight: 600; color: var(--muted); }
+    .cmp-card .v { font-size: 19px; font-weight: 800; margin-top: 4px; color: var(--text); }
+    .cmp-card .s { font-size: 11px; color: #475569; margin-top: 4px; line-height: 1.4; }
+    .var-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1.2fr;
+      gap: 16px;
+      align-items: start;
+    }
+    .var-list { display: flex; flex-direction: column; gap: 8px; }
+    .var-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: #fff;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s ease;
+    }
+    .var-item:hover { border-color: #a5b4fc; background: #f8fafc; }
+    .var-item.active {
+      border-color: var(--indigo);
+      background: var(--indigo-soft);
+      box-shadow: 0 2px 10px rgba(79, 70, 229, 0.10);
+    }
+    .var-item-left { display: flex; align-items: center; gap: 10px; }
+    .var-icon { font-size: 20px; flex-shrink: 0; }
+    .var-title { font-size: 13px; font-weight: 700; color: var(--text); }
+    .var-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .badge {
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .badge-pos { background: var(--emerald-soft); color: var(--emerald); }
+    .badge-neg { background: var(--rose-soft); color: var(--rose); }
+    .badge-neu { background: var(--indigo-soft); color: var(--indigo); }
+    .var-detail {
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .var-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .var-metric {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    .var-metric .l { font-size: 11px; color: var(--muted); font-weight: 600; }
+    .var-metric .v { font-size: 16px; font-weight: 800; color: var(--text); margin-top: 4px; }
+    .range-slider {
+      width: 100%;
+      margin-top: 6px;
+      accent-color: var(--indigo);
+      cursor: pointer;
+    }
+    .takeaways-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .takeaway-card {
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+    }
+    .takeaway-card h3 { margin: 0 0 8px; padding: 0; border: 0; font-size: 15px; color: var(--indigo); }
+    .takeaway-card p { margin: 0; font-size: 13px; color: #334155; line-height: 1.65; }
+
+    @media (max-width: 1200px) {
+      .hero-kpis, .cmp-grid { grid-template-columns: repeat(2, 1fr); }
+      .fields-4 { grid-template-columns: repeat(2, 1fr); }
+      .two-col, .var-grid, .takeaways-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 1080px) {
+      .layout { grid-template-columns: 1fr; }
+      .panel { position: static; max-height: none; }
+      .kpis { grid-template-columns: repeat(2, 1fr); }
+      .charts { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .hero-kpis, .kpis, .fields, .fields-4, .cmp-grid, .var-metrics { grid-template-columns: 1fr; }
+    }
+    @media print {
+      .topbar, .panel, button, .presets, .toast { display: none !important; }
+      .layout { display: block; }
+      .card { box-shadow: none; }
+      .scroll { max-height: none; overflow: visible; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-icon">退</div>
+        <div>
+          <h1>退撫基金精算決策支援系統 V4</h1>
+          <p>依據第 7 至第 9 次公務人員退休撫卹基金精算報告書（財務模擬・報告比較・政策分析）</p>
+        </div>
+      </div>
+      <nav class="nav-pills" aria-label="功能導覽">
+        <a class="nav-btn active" href="#sec-overview">基準現況</a>
+        <a class="nav-btn" href="#sec-reports">歷次演變</a>
+        <a class="nav-btn" href="#sec-variables">變數探索</a>
+        <a class="nav-btn" href="#sec-policy">政策模擬</a>
+        <a class="nav-btn" href="#sec-projection">精算推估</a>
+        <a class="nav-btn" href="#sec-raw">原始資料</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- Section 1: Hero Overview -->
+    <section id="sec-overview" class="section-anchor">
+      <div class="sec-head">
+        <div class="sec-title-wrap">
+          <h2>📌 第 9 次精算報告基準現況（評價日：112 年 12 月 31 日）</h2>
+          <p class="subdesc">彙整最新第 9 次精算報告各身分別關鍵指標，並與第 8 次報告對照制度轉折與缺口變化。</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <div class="seg" role="group" aria-label="身分別切換">
+            <button type="button" class="active" data-hero-group="civil" onclick="setHeroGroup('civil')">公務人員</button>
+            <button type="button" data-hero-group="edu" onclick="setHeroGroup('edu')">教育人員</button>
+            <button type="button" data-hero-group="mil" onclick="setHeroGroup('mil')">軍職人員</button>
+          </div>
+          <span class="status-pill" id="heroBadge"><span class="status-dot"></span><span>112/7/1 後初任改個人專戶・基金轉趨封閉</span></span>
+        </div>
+      </div>
+
+      <div class="hero-kpis">
+        <div class="hero-kpi">
+          <div class="l">精算應計負債（AAL）</div>
+          <div class="v indigo" id="heroLiab">-</div>
+          <div class="s" id="heroLiabSub">-</div>
+          <div class="d" id="heroLiabDiff">-</div>
+        </div>
+        <div class="hero-kpi">
+          <div class="l">已提存基金與提存比率</div>
+          <div class="v emerald" id="heroAsset">-</div>
+          <div class="s" id="heroAssetSub">-</div>
+          <div class="d" id="heroAssetDiff">-</div>
+        </div>
+        <div class="hero-kpi">
+          <div class="l">預估基金用罄年度</div>
+          <div class="v rose" id="heroZero">-</div>
+          <div class="s" id="heroZeroSub">-</div>
+          <div class="d" id="heroZeroDiff">-</div>
+        </div>
+        <div class="hero-kpi">
+          <div class="l">折現率與制度範圍</div>
+          <div class="v amber" id="heroDisc">-</div>
+          <div class="s" id="heroDiscSub">-</div>
+          <div class="d" id="heroDiscDiff">-</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Historical Report Comparison -->
+    <section id="sec-reports" class="card section-anchor">
+      <div class="sec-head">
+        <div class="sec-title-wrap">
+          <span class="eyebrow">歷次精算報告追蹤</span>
+          <h2>📜 第 7 至第 9 次精算負債與提存率演變</h2>
+          <p class="subdesc">呈現最近三次（106、109、112 年度）精算負債結構變化，點選「套用模型」可將該次核心財務假設載入自訂推估模型。</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <label for="reportGroup" style="font-size:12px;font-weight:700;color:#334155">身分別：</label>
+          <select id="reportGroup" onchange="syncGroupAndRenderReports(this.value)" style="padding:7px 10px;border:1px solid #cbd5e1;border-radius:8px;font:inherit;font-size:13px">
+            <option value="civil">公務人員</option>
+            <option value="edu">教育人員</option>
+            <option value="mil">軍職人員</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div>
+          <div class="chart-tall"><canvas id="reportChart"></canvas></div>
+        </div>
+        <div class="info-box">
+          <h4>三次報告關鍵模型演變</h4>
+          <ul>
+            <li><b>第 7 次（106/12/31）：</b>開放團體模型，納入未來 50 年新進人員；EAN 計算精算負債，折現率及資產報酬率均為 4.0%。</li>
+            <li><b>第 8 次（109/12/31）：</b>納入 112/7/1 後新進公教人員持續參加假設，提撥率分階段升至 15%，用罄年度大幅延後。</li>
+            <li><b>第 9 次（112/12/31）：</b>反映 112/7/1 後初任公教改採個人專戶、不再參加退撫基金；主要負債折現率 4.5%，用罄年度較第 8 次提前 6 年。</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="scroll" style="margin-top:16px">
+        <table>
+          <thead>
+            <tr><th>精算報告</th><th>基準日</th><th>模型與制度範圍</th><th>折現率</th><th>精算負債</th><th>已提存基金</th><th>未提存負債</th><th>提存比率</th><th>餘額轉負年度</th><th>操作</th></tr>
+          </thead>
+          <tbody id="reportBody"></tbody>
+        </table>
+      </div>
+
+      <div class="cmp-bar">
+        <span style="font-size:13px;font-weight:700;color:#0f172a">🔀 期間對照分析：</span>
+        <label for="cmpA" style="font-size:12px;color:#475569;font-weight:600">基準期</label>
+        <select id="cmpA" onchange="renderPeriodCmp()">
+          <option value="0">第 7 次（106 年）</option>
+          <option value="1" selected>第 8 次（109 年）</option>
+          <option value="2">第 9 次（112 年）</option>
+        </select>
+        <span style="font-size:13px;color:#64748b">→</span>
+        <label for="cmpB" style="font-size:12px;color:#475569;font-weight:600">對照期</label>
+        <select id="cmpB" onchange="renderPeriodCmp()">
+          <option value="0">第 7 次（106 年）</option>
+          <option value="1">第 8 次（109 年）</option>
+          <option value="2" selected>第 9 次（112 年）</option>
+        </select>
+      </div>
+      <div class="cmp-grid" id="cmpGrid"></div>
+    </section>
+
+    <!-- Section 2.5: Interactive Variable Sensitivity Explorer -->
+    <section id="sec-variables" class="card section-anchor">
+      <div class="sec-head">
+        <div class="sec-title-wrap">
+          <span class="eyebrow">精算敏感度分析</span>
+          <h2>🎛️ 精算變數敏感度互動探索</h2>
+          <p class="subdesc">點選下方關鍵精算假設，檢視其對短期現金流與長期應計負債的傳導機制，並以目前左側模型即時試算量化衝擊。</p>
+        </div>
+        <div class="presets" style="margin:0;padding:6px 10px" aria-label="變數分類篩選">
+          <button type="button" class="chip active" data-var-cat="all" onclick="filterVarCat('all', this)">全部變數 (6)</button>
+          <button type="button" class="chip" data-var-cat="econ" onclick="filterVarCat('econ', this)">經濟面</button>
+          <button type="button" class="chip" data-var-cat="demo" onclick="filterVarCat('demo', this)">人口與制度</button>
+        </div>
+      </div>
+
+      <div class="var-grid">
+        <div class="var-list" id="varList"></div>
+        <div class="var-detail" id="varDetail"></div>
+      </div>
+    </section>
+
+    <!-- Section 3: Policy Simulation Center -->
+    <section id="sec-policy" class="card section-anchor">
+      <div class="sec-head">
+        <div class="sec-title-wrap">
+          <span class="eyebrow">政策情境實驗室</span>
+          <h2>🧪 進階政策模擬與撥補反推中心</h2>
+          <p class="subdesc">以各次精算報告原始現金流或自訂模型為基準，快速測試提撥率調整、政府撥補、延後退休與新進回流對基金存續的影響。</p>
+        </div>
+        <span class="tag">V4 互動引擎</span>
+      </div>
+
+      <div id="polPresets" class="presets" aria-label="快速政策預設方案">
+        <span class="presets-label">快速情境：</span>
+        <button type="button" class="chip active" onclick="applyPolicyPreset('base', this)">↺ 重置為基準</button>
+        <button type="button" class="chip" onclick="applyPolicyPreset('contrib2', this)">提撥率 +2%</button>
+        <button type="button" class="chip" onclick="applyPolicyPreset('sub300', this)">年撥補 300 億</button>
+        <button type="button" class="chip" onclick="applyPolicyPreset('sub500', this)">年撥補 500 億</button>
+        <button type="button" class="chip" onclick="applyPolicyPreset('ret1', this)">投報率 +1%</button>
+        <button type="button" class="chip" onclick="applyPolicyPreset('entrants100', this)">新進 100% 回流</button>
+        <button type="button" class="chip" onclick="applyPolicyPreset('combo', this)">綜合改革（+2% 提撥 + 200 億）</button>
+      </div>
+
+      <div class="fields-4">
+        <div class="field">
+          <label for="polBase">基準現金流</label>
+          <select id="polBase" onchange="simulatePolicy()">
+            <option value="r9_civil">第9次公務</option>
+            <option value="r9_edu">第9次教育</option>
+            <option value="r8_civil">第8次公務</option>
+            <option value="r7_civil">第7次公務</option>
+            <option value="model">目前自訂模型</option>
+          </select>
+        </div>
+        <div class="field"><label for="polStart">政策起始年度（民國）</label><input id="polStart" type="number" value="116"></div>
+        <div class="field">
+          <label for="polContrib">提撥率調整（百分點）</label>
+          <input id="polContrib" type="number" step="0.5" value="0">
+          <input id="polContribRange" class="range-slider" type="range" min="-5" max="10" step="0.5" value="0" aria-label="提撥率調整滑桿">
+        </div>
+        <div class="field">
+          <label for="polSub">每年新增政府撥補（億元）</label>
+          <input id="polSub" type="number" value="0">
+          <input id="polSubRange" class="range-slider" type="range" min="0" max="1000" step="10" value="0" aria-label="政府撥補滑桿">
+        </div>
+        <div class="field"><label for="polSubGrowth">撥補年成長率（%）</label><input id="polSubGrowth" type="number" step="0.1" value="0"></div>
+        <div class="field">
+          <label for="polReturn">投資報酬率調整（百分點）</label>
+          <input id="polReturn" type="number" step="0.1" value="0">
+          <input id="polReturnRange" class="range-slider" type="range" min="-2" max="3" step="0.1" value="0" aria-label="投資報酬率調整滑桿">
+        </div>
+        <div class="field"><label for="polBenefit">給付調整（%，負值為調降）</label><input id="polBenefit" type="number" step="0.5" value="0"></div>
+        <div class="field"><label for="polRetAge">退休年齡延後（年）</label><input id="polRetAge" type="number" min="0" max="10" value="0"></div>
+        <div class="field">
+          <label for="polReturnEntrants">新進人員回流比例（%）</label>
+          <input id="polReturnEntrants" type="number" min="0" max="100" value="0">
+          <input id="polReturnEntrantsRange" class="range-slider" type="range" min="0" max="100" step="5" value="0" aria-label="新進人員回流比例滑桿">
+        </div>
+        <div class="field"><label for="polLump">一次性挹注（億元）</label><input id="polLump" type="number" value="0"></div>
+        <div class="field"><label for="polLumpYear">一次性挹注年度（民國）</label><input id="polLumpYear" type="number" value="116"></div>
+        <div class="field"><label for="polTarget">目標維持年度（民國）</label><input id="polTarget" type="number" value="160"></div>
+      </div>
+
+      <div class="buttons">
+        <button class="pri" type="button" onclick="simulatePolicy()">執行政策模擬</button>
+        <button class="sec" type="button" onclick="findMinimumSubsidy()">反推最低年撥補</button>
+        <button class="sec" type="button" onclick="savePolicyCase()">儲存方案</button>
+        <button class="sec" type="button" onclick="exportPolicy()">匯出結果 CSV</button>
+      </div>
+
+      <div class="kpis" style="margin-top:16px">
+        <div class="kpi"><div class="l">基準用罄年度</div><div class="v" id="polBaseDep">-</div></div>
+        <div class="kpi"><div class="l">政策後用罄年度</div><div class="v" id="polDep">-</div></div>
+        <div class="kpi"><div class="l">政策期末餘額</div><div class="v" id="polEnd">-</div></div>
+        <div class="kpi"><div class="l">累計政府成本</div><div class="v" id="polCost">-</div></div>
+        <div class="kpi"><div class="l">延後年數</div><div class="v" id="polDelay">-</div></div>
+      </div>
+
+      <div class="chart-tall" style="margin-top:16px"><canvas id="policyChart"></canvas></div>
+
+      <div class="scroll" style="margin-top:14px">
+        <table>
+          <thead><tr><th>年度</th><th>基準餘額</th><th>政策後餘額</th><th>提撥收入</th><th>給付支出</th><th>投資收益</th><th>政府挹注</th><th>政策差額</th></tr></thead>
+          <tbody id="policyBody"></tbody>
+        </table>
+      </div>
+      <p class="subtle">政策模擬以選定報告原始現金流為基準（新增政府撥補疊加於基準既有挹注之上），逐年重算資產與投資收益。延後退休（每延後 1 年，前 10 年給付減 1.5%、提撥增 0.6%）與新進人員回流採透明近似係數，適合政策篩選。</p>
+    </section>
+
+    <!-- Section 4: Custom Actuarial Model & Sensitivity -->
+    <section id="sec-projection" class="section-anchor">
+      <div class="sec-head">
+        <div class="sec-title-wrap">
+          <span class="eyebrow">確定性精算推估模型</span>
+          <h2>🧮 精算假設參數設定與敏感性分析</h2>
+          <p class="subdesc">可自由切換 PUC / EAN / TUC 成本法並微調人口、薪資、折現率與報酬率參數，即時觀察未來 50 年資產負債與敏感度衝擊。</p>
+        </div>
+      </div>
+
+      <div class="layout">
+        <aside class="card panel" aria-label="精算假設參數">
+          <h2 style="font-size:16px">精算假設參數</h2>
+          <div class="fields">
+            <div class="field full">
+              <label for="method">精算成本法</label>
+              <select id="method">
+                <option value="PUC" selected>預計單位福利法（PUC）</option>
+                <option value="EAN">加入年齡正常成本法（EAN）</option>
+                <option value="TUC">傳統單位福利法（TUC）</option>
+              </select>
+            </div>
+          </div>
+
+          <h3>基準與期間</h3>
+          <div class="fields">
+            <div class="field"><label for="baseYear">基準年度（民國）</label><input id="baseYear" type="number" value="115"></div>
+            <div class="field"><label for="years">推估年數（年）</label><input id="years" type="number" min="10" max="80" value="50"></div>
+            <div class="field"><label for="assets">期初基金資產（億元）</label><input id="assets" type="number" value="4500"></div>
+            <div class="field"><label for="amort">負債攤銷期間（年）</label><input id="amort" type="number" min="1" max="40" value="20"></div>
+          </div>
+
+          <h3>在職人員</h3>
+          <div class="fields">
+            <div class="field"><label for="active">期初在職人數（人）</label><input id="active" type="number" value="300000"></div>
+            <div class="field"><label for="age">平均目前年齡（歲）</label><input id="age" type="number" value="42"></div>
+            <div class="field"><label for="service">平均服務年資（年）</label><input id="service" type="number" value="15"></div>
+            <div class="field"><label for="salary">平均年薪（萬元）</label><input id="salary" type="number" value="90"></div>
+            <div class="field"><label for="retAge">退休年齡（歲）</label><input id="retAge" type="number" value="65"></div>
+            <div class="field"><label for="newEntrants">每年新進人數（人）</label><input id="newEntrants" type="number" value="9000"></div>
+            <div class="field"><label for="entryAge">新進年齡（歲）</label><input id="entryAge" type="number" value="30"></div>
+            <div class="field"><label for="entrySalary">新進平均年薪（萬元）</label><input id="entrySalary" type="number" value="55"></div>
+          </div>
+
+          <h3>退休人員與給付</h3>
+          <div class="fields">
+            <div class="field"><label for="retired">期初退休人數（人）</label><input id="retired" type="number" value="160000"></div>
+            <div class="field"><label for="retiredAge">平均退休年齡（歲）</label><input id="retiredAge" type="number" value="72"></div>
+            <div class="field"><label for="pension">平均年金（萬元/年）</label><input id="pension" type="number" value="48"></div>
+            <div class="field"><label for="accrual">每年服務給付率（%）</label><input id="accrual" type="number" step="0.1" value="1.5"></div>
+            <div class="field"><label for="maxReplace">最高替代率（%）</label><input id="maxReplace" type="number" value="75"></div>
+            <div class="field"><label for="cola">年金調整率（%）</label><input id="cola" type="number" step="0.1" value="1.5"></div>
+          </div>
+
+          <h3>經濟與人口假設</h3>
+          <div class="fields">
+            <div class="field"><label for="contrib">提撥率（%）</label><input id="contrib" type="number" step="0.1" value="15"></div>
+            <div class="field"><label for="salaryGrowth">薪資成長率（%）</label><input id="salaryGrowth" type="number" step="0.1" value="2.5"></div>
+            <div class="field"><label for="discount">折現率（%）</label><input id="discount" type="number" step="0.1" value="3.0"></div>
+            <div class="field"><label for="returnRate">資產報酬率（%）</label><input id="returnRate" type="number" step="0.1" value="4.0"></div>
+            <div class="field"><label for="turnover">在職退出率（%）</label><input id="turnover" type="number" step="0.1" value="1.0"></div>
+            <div class="field"><label for="activeMort">在職死亡率（%）</label><input id="activeMort" type="number" step="0.01" value="0.20"></div>
+            <div class="field"><label for="retMort">退休死亡率起始（%）</label><input id="retMort" type="number" step="0.1" value="2.5"></div>
+            <div class="field"><label for="mortSlope">死亡率年增幅（%）</label><input id="mortSlope" type="number" step="0.05" value="0.30"></div>
+          </div>
+
+          <h3>政府挹注</h3>
+          <div class="fields">
+            <div class="field"><label for="subsidy">每年固定挹注（億元）</label><input id="subsidy" type="number" value="0"></div>
+            <div class="field"><label for="subGrowth">挹注成長率（%）</label><input id="subGrowth" type="number" step="0.1" value="0"></div>
+          </div>
+
+          <div class="buttons-grid">
+            <button class="pri" type="button" onclick="run()">重新計算</button>
+            <button class="sec" type="button" onclick="resetDefaults()">恢復預設</button>
+            <button class="sec" type="button" onclick="exportCSV()">匯出 CSV</button>
+            <button class="sec" type="button" onclick="window.print()">列印</button>
+          </div>
+          <p class="subtle">本版以精算現值、人口遞移與年度現金流逐年推估；正式精算簽證須改用逐人資料及正式生命表。</p>
+        </aside>
+
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="kpis">
+            <div class="card kpi"><div class="l">精算應計負債 AAL</div><div id="aal" class="v">-</div><div class="s">基準日現值</div></div>
+            <div class="card kpi"><div class="l">期初提存比率</div><div id="funded" class="v">-</div><div class="s">資產 ÷ AAL</div></div>
+            <div class="card kpi"><div class="l">建議精算提撥率</div><div id="adcRate" class="v">-</div><div class="s">正常成本＋未提存攤銷</div></div>
+            <div class="card kpi"><div class="l">基金首次為負年度</div><div id="deplete" class="v">-</div><div class="s">依年度現金流推估</div></div>
+            <div class="card kpi"><div class="l">期末基金資產</div><div id="ending" class="v">-</div><div class="s">推估期間末</div></div>
+          </div>
+
+          <div class="charts" style="margin-top:0">
+            <div class="card">
+              <h2 style="font-size:16px;margin-bottom:10px">資產與精算負債走勢</h2>
+              <div class="chart"><canvas id="assetChart"></canvas></div>
+            </div>
+            <div class="card">
+              <h2 style="font-size:16px;margin-bottom:10px">年度現金流結構</h2>
+              <div class="chart"><canvas id="cashChart"></canvas></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="sec-head" style="margin-bottom:10px">
+              <h2 style="font-size:16px">精算推估明細</h2>
+              <div style="display:flex;align-items:center;gap:8px">
+                <span class="tag" id="methodTag"></span>
+                <button class="sec" type="button" onclick="stress()">產生敏感性分析</button>
+              </div>
+            </div>
+            <div class="scroll">
+              <table>
+                <thead>
+                  <tr><th>年度</th><th>在職人數</th><th>退休人數</th><th>薪資總額</th><th>提撥收入</th><th>給付支出</th><th>投資收益</th><th>政府挹注</th><th>期末資產</th><th>AAL</th><th>提存比率</th></tr>
+                </thead>
+                <tbody id="body"></tbody>
+              </table>
+            </div>
+            <details class="method">
+              <summary>模型方法、公式與限制</summary>
+              <ul>
+                <li><b>PUC：</b>將退休時預計年金，依已服務年資占退休時總服務年資的比例歸屬，計算精算應計負債及當期正常成本。</li>
+                <li><b>EAN：</b>以加入年齡至退休年齡期間的薪資現值作為分母，求得固定薪資比例之正常成本率，再累積形成負債。</li>
+                <li><b>TUC：</b>只按目前薪資衡量已累積給付，不投射退休前薪資，因此通常低於 PUC 負債。</li>
+                <li>人口模型採群體平均法，依退休、退出、死亡及新進率遞移；退休後存續率依平均年齡及死亡率斜率近似。</li>
+              </ul>
+            </details>
+          </div>
+
+          <div id="stressBox" class="card" style="display:none">
+            <div class="sec-head" style="margin-bottom:10px">
+              <h2 style="font-size:16px">📊 單一變數敏感性分析（AAL 衝擊與用罄年度）</h2>
+            </div>
+            <div class="chart" style="height:260px;margin-bottom:14px"><canvas id="stressChart"></canvas></div>
+            <div class="scroll">
+              <table>
+                <thead><tr><th>情境</th><th>AAL（億元）</th><th>提存比率</th><th>建議提撥率</th><th>用罄年度</th></tr></thead>
+                <tbody id="stressBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 4.5: Executive Takeaways -->
+    <section id="sec-takeaways" class="card section-anchor">
+      <div class="sec-head">
+        <div class="sec-title-wrap">
+          <span class="eyebrow">綜合政策啟示</span>
+          <h2>🧭 退撫基金精算分析綜合結論與改革建議</h2>
+          <p class="subdesc">綜合第 7 至第 9 次精算報告數據與政策模擬敏感度，歸納退撫基金財務結構的三項核心結論。</p>
+        </div>
+      </div>
+      <div class="takeaways-grid">
+        <div class="takeaway-card">
+          <h3>1. 封閉群體分流效應</h3>
+          <p>112 年 7 月 1 日後初任公教改採個人專戶，新進人員提撥不再進入舊基金，使既有退休給付壓力無法由新進現金流緩衝，第 9 次公教預估用罄年度較第 8 次提前 6 年（公務 140→134 年、教育 137→131 年）。</p>
+        </div>
+        <div class="takeaway-card">
+          <h3>2. 投報率與提早撥補槓桿</h3>
+          <p>在基金餘額尚未歸零前，每提升 1 個百分點長期投資報酬率，或提早啟動政府定額撥補，能透過複利效果顯著減緩資產下滑速度，降低後期財政一次性填補缺口的總成本。</p>
+        </div>
+        <div class="takeaway-card">
+          <h3>3. 單一工具極限與多元組合</h3>
+          <p>若欲維持至民國 160 年不破產，單靠政府年撥補往往需近 500 億元／年規模；透過「綜合改革」（適度提撥調整＋分年撥補＋資產配置優化）可分散財政壓力並提升政策可行性。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 5: Raw Data & Export Center -->
+    <section id="sec-raw" class="card section-anchor">
+      <div class="sec-head">
+        <div class="sec-title-wrap">
+          <span class="eyebrow">V3 資料層</span>
+          <h2>📋 報告原始資料、現金流與匯出中心</h2>
+          <p class="subdesc">內建第 7 至第 9 次報告附錄逐年現金流（已統一換算為億元），並支援匯入自訂 CSV 與匯出完整 JSON/CSV 分析包。</p>
+        </div>
+      </div>
+
+      <div class="fields-4" style="margin-bottom:12px">
+        <div class="field">
+          <label for="rawReport">報告</label>
+          <select id="rawReport" onchange="renderRaw()">
+            <option value="r7">第7次精算</option>
+            <option value="r8">第8次精算</option>
+            <option value="r9">第9次精算</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="rawGroup">身分類別</label>
+          <select id="rawGroup" onchange="renderRaw()">
+            <option value="civil">公務人員</option>
+            <option value="edu">教育人員</option>
+            <option value="mil">軍職人員</option>
+          </select>
+        </div>
+        <div class="field" style="grid-column: span 2">
+          <label for="cashFile">匯入逐年現金流 CSV（年度、提撥率、期初資產、提撥收入、投資收益、挹注、給付支出、淨現金流、期末餘額）</label>
+          <input id="cashFile" type="file" accept=".csv" onchange="importCash(this.files[0])">
+        </div>
+      </div>
+
+      <div class="buttons" style="margin-top:0;margin-bottom:12px">
+        <button class="sec" type="button" onclick="exportCurrentCash()">📥 匯出目前現金流 CSV</button>
+        <button class="sec" type="button" onclick="exportAssumptions()">匯出原始假設 JSON</button>
+        <button class="sec" type="button" onclick="exportDifferences()">匯出模型差異 CSV</button>
+        <button class="sec" type="button" onclick="exportPackage()">匯出完整分析包 JSON</button>
+      </div>
+
+      <h3>逐年現金流</h3>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>年度</th><th>提撥率</th><th>期初資產</th><th>提撥收入</th><th>投資收益</th><th>政府挹注</th><th>給付支出</th><th>淨現金流</th><th>期末餘額</th><th>資料狀態</th></tr></thead>
+          <tbody id="rawCashBody"></tbody>
+        </table>
+      </div>
+
+      <h3>報告原始假設表</h3>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>假設項目</th><th>第7次</th><th>第8次</th><th>第9次</th><th>模型影響</th></tr></thead>
+          <tbody id="assumptionBody"></tbody>
+        </table>
+      </div>
+
+      <h3>模型差異與結果</h3>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>比較面向</th><th>第7次</th><th>第8次</th><th>第9次</th><th>分析</th></tr></thead>
+          <tbody id="diffBody"></tbody>
+        </table>
+      </div>
+      <p class="subtle">內建逐年表以報告附錄千元資料轉為億元。未內建的身分別或報告，可直接匯入同欄位 CSV，資料只儲存在目前瀏覽器，不會上傳。</p>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    let rows = [];
+    let policyRows = [];
+    let lastStressCases = [];
+    let imported = {};
+    const charts = {};
+
+    const $ = id => document.getElementById(id);
+    const num = id => +$(id).value;
+    const pct = id => num(id) / 100;
+    const fmt = n => (
+      n < 0
+        ? '(' + Math.abs(n).toLocaleString('zh-TW', { maximumFractionDigits: 1 }) + ')'
+        : n.toLocaleString('zh-TW', { maximumFractionDigits: 1 })
+    );
+
+    let toastTimer = null;
+    function notify(msg, isError = false) {
+      const el = $('toast');
+      el.textContent = msg;
+      el.className = 'toast show' + (isError ? ' error' : '');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('show'), 4000);
+    }
+
+    if (typeof Chart !== 'undefined') {
+      Chart.defaults.font.family = '"Inter", "Noto Sans TC", "Microsoft JhengHei", sans-serif';
+      Chart.defaults.color = '#64748b';
+    }
+
+    function annuity(age, disc, baseMort, slope, cola) {
+      let pv = 0;
+      let surv = 1;
+      for (let k = 0; k < 45; k++) {
+        const q = Math.min(0.45, baseMort + slope * Math.max(0, age + k - 70));
+        surv *= 1 - q;
+        pv += surv * Math.pow(1 + cola, k) / Math.pow(1 + disc, k + 1);
+      }
+      return pv;
+    }
+
+    function calc(over = {}) {
+      const v = id => over[id] ?? num(id);
+      const p = id => (over[id] ?? num(id)) / 100;
+      const method = over.method || $('method').value;
+      const Y = v('years');
+      const year = v('baseYear');
+      let assets = v('assets');
+      let a = v('active');
+      let age = v('age');
+      const svc = v('service');
+      let salary = v('salary') / 10;
+      let ret = v('retired');
+      let rAge = v('retiredAge');
+      let pension = v('pension') / 10;
+      const retAge = v('retAge');
+      const entryAge = v('entryAge');
+      const entrySalary = v('entrySalary') / 10;
+      const newE = v('newEntrants');
+      const accr = p('accrual');
+      const maxRep = p('maxReplace');
+      const cola = p('cola');
+      const cg = p('salaryGrowth');
+      const disc = p('discount');
+      const rr = p('returnRate');
+      const turn = p('turnover');
+      const am = p('activeMort');
+      const rm = p('retMort');
+      const slope = p('mortSlope');
+      const cr = p('contrib');
+      let sub = v('subsidy');
+      const subg = p('subGrowth');
+      const amort = v('amort');
+
+      const yrs = Math.max(0, retAge - age);
+      const projSal = salary * Math.pow(1 + cg, yrs);
+      const totSvc = svc + yrs;
+      const fullBen = Math.min(maxRep, accr * totSvc) * projSal;
+      const earnedBen = method === 'TUC'
+        ? Math.min(maxRep, accr * svc) * salary
+        : fullBen * (method === 'PUC' ? svc / Math.max(1, totSvc) : 1);
+      const af = annuity(retAge, disc, rm, slope, cola);
+      const survToRet = Math.pow(1 - am - turn, yrs);
+      const aalActive = a * earnedBen * af * survToRet / Math.pow(1 + disc, yrs) / 10000;
+      const aalRet = ret * pension * annuity(rAge, disc, rm, slope, cola) / 10000;
+      const aal = aalActive + aalRet;
+
+      let ncRate;
+      if (method === 'EAN') {
+        let pvSal = 0;
+        const span = Math.max(1, retAge - entryAge);
+        for (let k = 0; k < span; k++) {
+          pvSal += Math.pow(1 + cg, k) / Math.pow(1 + disc, k + 1);
+        }
+        const benefitAtRet = Math.min(maxRep, accr * span) * entrySalary * Math.pow(1 + cg, span);
+        ncRate = (benefitAtRet * af / Math.pow(1 + disc, span)) / Math.max(0.01, entrySalary * pvSal);
+      } else {
+        const unit = method === 'TUC' ? accr * salary : fullBen / Math.max(1, totSvc);
+        ncRate = (unit * af * survToRet / Math.pow(1 + disc, yrs)) / Math.max(0.01, salary);
+      }
+
+      const payroll = a * salary / 10000;
+      const ual = Math.max(0, aal - assets);
+      const amortFactor = disc ? disc / (1 - Math.pow(1 + disc, -amort)) : 1 / amort;
+      const adc = (ncRate * payroll + ual * amortFactor) / Math.max(0.01, payroll);
+
+      const initPop = Math.max(1, num('active') + num('retired'));
+      const out = [];
+      for (let t = 0; t <= Y; t++) {
+        const qret = Math.max(0, Math.min(1, (age >= retAge ? 1 : 1 / Math.max(1, retAge - age)) * 0.08));
+        const newRet = a * qret;
+        const exit = a * (turn + am);
+        const retDeath = ret * Math.min(0.45, rm + slope * Math.max(0, rAge - 70));
+        const pay = a * salary / 10000;
+        const con = pay * cr;
+        const benef = ret * pension / 10000;
+        const inv = (assets + (con + sub - benef) / 2) * rr;
+        const ending = assets + con + sub + inv - benef;
+        const liab = aal * Math.pow(1 + disc, t) * Math.max(0.15, (a + ret) / initPop);
+        out.push({
+          year: year + t,
+          active: a,
+          retired: ret,
+          payroll: pay,
+          contrib: con,
+          benefit: benef,
+          investment: inv,
+          subsidy: sub,
+          assets: ending,
+          aal: liab,
+          funded: liab ? ending / liab : 0
+        });
+        assets = ending;
+        a = Math.max(0, a + newE - newRet - exit);
+        ret = Math.max(0, ret + newRet - retDeath);
+        age = Math.min(retAge, age + 0.65);
+        rAge += 0.45;
+        salary *= 1 + cg;
+        pension *= 1 + cola;
+        sub *= 1 + subg;
+      }
+      return { rows: out, aal, adc, ncRate };
+    }
+
+    /* Fallback native canvas chart if Chart.js CDN unavailable */
+    function drawFallback(cv, labs, ss) {
+      if (!cv || !labs || !labs.length) return;
+      const D = window.devicePixelRatio || 1;
+      const w = cv.clientWidth;
+      const h = cv.clientHeight;
+      if (!w || !h) return;
+      cv.width = w * D;
+      cv.height = h * D;
+      const c = cv.getContext('2d');
+      c.scale(D, D);
+
+      const vals = ss.flatMap(s => s.d);
+      let mn = Math.min(0, ...vals);
+      let mx = Math.max(1, ...vals);
+      const pad = (mx - mn) * 0.1 || 1;
+      mn -= pad;
+      mx += pad;
+
+      const L = 64, R = 18, T = 26, B = 36;
+      const x = i => labs.length === 1 ? L + (w - L - R) / 2 : L + i * (w - L - R) / (labs.length - 1);
+      const y = v => T + (mx - v) * (h - T - B) / (mx - mn);
+
+      c.font = '11px sans-serif';
+      for (let i = 0; i < 5; i++) {
+        const yy = T + i * (h - T - B) / 4;
+        c.strokeStyle = '#e2e8f0';
+        c.lineWidth = 1;
+        c.beginPath();
+        c.moveTo(L, yy);
+        c.lineTo(w - R, yy);
+        c.stroke();
+        c.fillStyle = '#64748b';
+        c.fillText(fmt(mx - i * (mx - mn) / 4), 4, yy + 4);
+      }
+      if (mn < 0 && mx > 0) {
+        const y0 = y(0);
+        c.save();
+        c.strokeStyle = '#94a3b8';
+        c.setLineDash([4, 4]);
+        c.beginPath();
+        c.moveTo(L, y0);
+        c.lineTo(w - R, y0);
+        c.stroke();
+        c.restore();
+      }
+      const step = Math.max(1, Math.ceil(labs.length / 8));
+      c.fillStyle = '#64748b';
+      labs.forEach((z, i) => {
+        if (i % step === 0 || i === labs.length - 1) c.fillText(String(z), x(i) - 10, h - 10);
+      });
+      ss.forEach((s, j) => {
+        c.strokeStyle = s.c;
+        c.lineWidth = 2;
+        c.beginPath();
+        s.d.forEach((v, i) => (i ? c.lineTo(x(i), y(v)) : c.moveTo(x(i), y(v))));
+        c.stroke();
+        const lx = L + j * 118;
+        c.fillStyle = s.c;
+        c.fillRect(lx, 6, 12, 3);
+        c.fillStyle = '#334155';
+        c.fillText(s.n, lx + 17, 11);
+      });
+    }
+
+    function mountChart(id, config, fallbackLabs, fallbackSeries) {
+      const cv = $(id);
+      if (!cv) return;
+      if (typeof Chart === 'undefined') {
+        drawFallback(cv, fallbackLabs, fallbackSeries);
+        return;
+      }
+      if (charts[id]) charts[id].destroy();
+      charts[id] = new Chart(cv, config);
+    }
+
+    function renderProjectionCharts() {
+      if (!rows.length) return;
+      const labs = rows.map(x => x.year + '年');
+      mountChart('assetChart', {
+        type: 'line',
+        data: {
+          labels: labs,
+          datasets: [
+            {
+              label: '基金資產（億元）',
+              data: rows.map(x => +x.assets.toFixed(1)),
+              borderColor: '#4f46e5',
+              backgroundColor: 'rgba(79, 70, 229, 0.08)',
+              fill: true,
+              tension: 0.25,
+              pointRadius: 0,
+              borderWidth: 2.5
+            },
+            {
+              label: '精算負債 AAL（億元）',
+              data: rows.map(x => +x.aal.toFixed(1)),
+              borderColor: '#e11d48',
+              borderDash: [5, 4],
+              tension: 0.25,
+              pointRadius: 0,
+              borderWidth: 2
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8 } },
+            tooltip: {
+              callbacks: {
+                label: ctx => `${ctx.dataset.label}: ${fmt(ctx.parsed.y)} 億元`
+              }
+            }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { maxTicksLimit: 9 } },
+            y: {
+              grid: { color: '#f1f5f9' },
+              ticks: { callback: v => fmt(v) }
+            }
+          }
+        }
+      }, rows.map(x => x.year), [
+        { n: '基金資產', d: rows.map(x => x.assets), c: '#4f46e5' },
+        { n: '精算負債', d: rows.map(x => x.aal), c: '#e11d48' }
+      ]);
+
+      mountChart('cashChart', {
+        type: 'line',
+        data: {
+          labels: labs,
+          datasets: [
+            { label: '提撥收入', data: rows.map(x => +x.contrib.toFixed(1)), borderColor: '#059669', tension: 0.25, pointRadius: 0, borderWidth: 2 },
+            { label: '給付支出', data: rows.map(x => +x.benefit.toFixed(1)), borderColor: '#e11d48', tension: 0.25, pointRadius: 0, borderWidth: 2 },
+            { label: '投資收益', data: rows.map(x => +x.investment.toFixed(1)), borderColor: '#d97706', tension: 0.25, pointRadius: 0, borderWidth: 2 }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8 } },
+            tooltip: {
+              callbacks: {
+                label: ctx => `${ctx.dataset.label}: ${fmt(ctx.parsed.y)} 億元`
+              }
+            }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { maxTicksLimit: 9 } },
+            y: { grid: { color: '#f1f5f9' }, ticks: { callback: v => fmt(v) } }
+          }
+        }
+      }, rows.map(x => x.year), [
+        { n: '提撥', d: rows.map(x => x.contrib), c: '#059669' },
+        { n: '給付', d: rows.map(x => x.benefit), c: '#e11d48' },
+        { n: '投資收益', d: rows.map(x => x.investment), c: '#d97706' }
+      ]);
+    }
+
+    function renderTable() {
+      $('body').innerHTML = rows.map(x =>
+        `<tr>
+          <td>${x.year}</td>
+          <td>${Math.round(x.active).toLocaleString()}</td>
+          <td>${Math.round(x.retired).toLocaleString()}</td>
+          ${['payroll', 'contrib', 'benefit', 'investment', 'subsidy', 'assets', 'aal']
+            .map(k => `<td class="${x[k] < 0 ? 'neg' : ''}">${fmt(x[k])}</td>`).join('')}
+          <td class="${x.funded < 1 ? 'warn' : 'pos'}">${fmt(x.funded * 100)}%</td>
+        </tr>`
+      ).join('');
+    }
+
+    function run() {
+      const r = calc();
+      rows = r.rows;
+      $('aal').textContent = fmt(r.aal) + ' 億';
+      $('funded').textContent = fmt(num('assets') / r.aal * 100) + '%';
+      $('adcRate').textContent = fmt(r.adc * 100) + '%';
+      const d = rows.find(x => x.assets < 0);
+      $('deplete').textContent = d ? d.year + '年' : '期間內未用罄';
+      const last = rows.at(-1);
+      $('ending').textContent = fmt(last.assets) + ' 億';
+      $('ending').className = 'v ' + (last.assets < 0 ? 'neg' : 'pos');
+      $('methodTag').textContent = $('method').selectedOptions[0].text;
+      renderTable();
+      renderProjectionCharts();
+    }
+
+    function renderStressChart() {
+      if (!lastStressCases.length) return;
+      const labs = lastStressCases.map(c => c.name);
+      const vals = lastStressCases.map(c => +c.aal.toFixed(1));
+      mountChart('stressChart', {
+        type: 'bar',
+        data: {
+          labels: labs,
+          datasets: [{
+            label: '精算應計負債 AAL（億元）',
+            data: vals,
+            backgroundColor: vals.map((_, i) => i === 0 ? '#64748b' : (vals[i] > vals[0] ? '#fb7185' : '#34d399')),
+            borderRadius: 6
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: ctx => `AAL: ${fmt(ctx.parsed.x)} 億元`
+              }
+            }
+          },
+          scales: {
+            x: { grid: { color: '#f1f5f9' }, ticks: { callback: v => fmt(v) } },
+            y: { grid: { display: false } }
+          }
+        }
+      }, labs, [{ n: 'AAL', d: vals, c: '#4f46e5' }]);
+    }
+
+    function stress() {
+      const defs = [
+        ['基準情境', {}],
+        ['折現率 -0.5%', { discount: num('discount') - 0.5 }],
+        ['折現率 +0.5%', { discount: num('discount') + 0.5 }],
+        ['報酬率 -1.0%', { returnRate: num('returnRate') - 1 }],
+        ['報酬率 +1.0%', { returnRate: num('returnRate') + 1 }],
+        ['薪資成長 +1.0%', { salaryGrowth: num('salaryGrowth') + 1 }],
+        ['退休死亡率 -10%', { retMort: num('retMort') * 0.9, mortSlope: num('mortSlope') * 0.9 }]
+      ];
+      lastStressCases = defs.map(([name, o]) => {
+        const r = calc(o);
+        const d = r.rows.find(x => x.assets < 0);
+        return { name, aal: r.aal, adc: r.adc, dep: d ? d.year + '年' : '期間內未用罄' };
+      });
+      $('stressBody').innerHTML = lastStressCases.map(c =>
+        `<tr><td>${c.name}</td><td>${fmt(c.aal)}</td><td>${fmt(num('assets') / c.aal * 100)}%</td><td>${fmt(c.adc * 100)}%</td><td>${c.dep}</td></tr>`
+      ).join('');
+      $('stressBox').style.display = 'block';
+      renderStressChart();
+    }
+
+    function dl(name, text, type = 'text/plain') {
+      const a = document.createElement('a');
+      const url = URL.createObjectURL(new Blob([text], { type }));
+      a.href = url;
+      a.download = name;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function exportCSV() {
+      const h = ['年度', '在職人數', '退休人數', '薪資總額(億元)', '提撥收入(億元)', '給付支出(億元)', '投資收益(億元)', '政府挹注(億元)', '期末資產(億元)', 'AAL(億元)', '提存比率'];
+      const csv = '\ufeff' + [h.join(','), ...rows.map(x => [
+        x.year, x.active, x.retired, x.payroll, x.contrib, x.benefit, x.investment, x.subsidy, x.assets, x.aal, x.funded
+      ].join(','))].join('\n');
+      dl('一般精算財務推估.csv', csv, 'text/csv');
+    }
+
+    const REPORTS = {
+      civil: [
+        { n: '第7次', date: '106/12/31', model: '開放團體；未來50年新進人員加入', discount: 4.0, liab: 13245.8743, asset: 3613.0397, ual: 9632.8346, funded: 27, zero: '130', base: 106, newE: 9000 },
+        { n: '第8次', date: '109/12/31', model: '含112/7/1後新進人員持續參加', discount: 4.0, liab: 14586, asset: 3895, ual: 10691, funded: 27, zero: '140', base: 109, newE: 9000 },
+        { n: '第9次', date: '112/12/31', model: '112/7/1後初任人員改採個人專戶', discount: 4.5, liab: 17311.16, asset: 4611.56, ual: 12699.60, funded: 27, zero: '134', base: 112, newE: 0 }
+      ],
+      edu: [
+        { n: '第7次', date: '106/12/31', model: '開放團體；未來50年新進人員加入', discount: 4.0, liab: 12370.0919, asset: 2121.7401, ual: 10248.3518, funded: 17, zero: '129', base: 106, newE: 6000 },
+        { n: '第8次', date: '109/12/31', model: '含112/7/1後新進人員持續參加', discount: 4.0, liab: 13366, asset: 2163, ual: 11203, funded: 16, zero: '137', base: 109, newE: 6000 },
+        { n: '第9次', date: '112/12/31', model: '112/7/1後初任人員改採個人專戶', discount: 4.5, liab: 16028.55, asset: 2731.30, ual: 13297.25, funded: 17, zero: '131', base: 112, newE: 0 }
+      ],
+      mil: [
+        { n: '第7次', date: '106/12/31', model: '開放團體；未來50年新進人員加入', discount: 4.0, liab: 3282.3635, asset: 177.8854, ual: 3104.4781, funded: 5, zero: 'NA', base: 106, newE: 8000 },
+        { n: '第8次', date: '109/12/31', model: '軍職新進團體持續加入', discount: 4.0, liab: 3684, asset: 437, ual: 3247, funded: 12, zero: 'NA', base: 109, newE: 8000 },
+        { n: '第9次', date: '112/12/31', model: '軍職人員維持參加基金', discount: 4.5, liab: 4499.26, asset: 945.29, ual: 3553.97, funded: 21, zero: 'NA', base: 112, newE: 8000 }
+      ]
+    };
+
+    let currentHeroGroup = 'civil';
+    function renderHero(group = currentHeroGroup) {
+      currentHeroGroup = group;
+      document.querySelectorAll('[data-hero-group]').forEach(b => {
+        b.classList.toggle('active', b.dataset.heroGroup === group);
+      });
+      const arr = REPORTS[group];
+      const r8 = arr[1];
+      const r9 = arr[2];
+      const liabDiff = r9.liab - r8.liab;
+      const liabPct = (liabDiff / r8.liab * 100).toFixed(1);
+
+      $('heroLiab').textContent = fmt(r9.liab) + ' 億元';
+      $('heroLiabSub').textContent = `未提存精算負債 ${fmt(r9.ual)} 億元`;
+      $('heroLiabDiff').textContent = `較第8次（${fmt(r8.liab)} 億）增加 ${fmt(liabDiff)} 億（+${liabPct}%）`;
+
+      $('heroAsset').textContent = fmt(r9.asset) + ' 億元';
+      $('heroAssetSub').textContent = `已提存比率 ${r9.funded}%（資產 ÷ 負債）`;
+      $('heroAssetDiff').textContent = `第8次為 ${fmt(r8.asset)} 億元（提存率 ${r8.funded}%）`;
+
+      $('heroZero').textContent = r9.zero === 'NA' ? '未於期間內用罄' : `民國 ${r9.zero} 年`;
+      $('heroZeroSub').textContent = r9.zero === 'NA' ? '軍職維持參加並計入政府撥補機制' : `自 113 年起算約 ${+r9.zero - 112} 年後基金轉負`;
+      $('heroZeroDiff').textContent = r8.zero === 'NA' ? '第8次亦未用罄（NA）' : `第8次原預估 ${r8.zero} 年，較前次提前 ${+r8.zero - +r9.zero} 年`;
+
+      $('heroDisc').textContent = `${r9.discount}%`;
+      $('heroDiscSub').textContent = `模型：${r9.model}`;
+      $('heroDiscDiff').textContent = `第8次折現率為 ${r8.discount}%（調升 +${(r9.discount - r8.discount).toFixed(1)}%）`;
+
+      const badgeText = group === 'mil'
+        ? '軍職維持參加基金・法定提存率提升至 21%'
+        : '112/7/1 後初任改個人專戶・基金轉趨封閉';
+      $('heroBadge').querySelector('span:last-child').textContent = badgeText;
+    }
+
+    function setHeroGroup(group) {
+      renderHero(group);
+      $('reportGroup').value = group;
+      renderReports();
+    }
+
+    function syncGroupAndRenderReports(group) {
+      renderHero(group);
+      renderReports();
+    }
+
+    function renderReportChart() {
+      const a = REPORTS[$('reportGroup').value];
+      const labs = a.map(x => `${x.n} (${x.date.slice(0, 3)}年)`);
+      mountChart('reportChart', {
+        type: 'bar',
+        data: {
+          labels: labs,
+          datasets: [
+            {
+              label: '已提存基金（億元）',
+              data: a.map(x => +x.asset.toFixed(1)),
+              backgroundColor: '#10b981',
+              stack: 'aal',
+              borderRadius: 4,
+              order: 2,
+              yAxisID: 'y'
+            },
+            {
+              label: '未提存精算負債（億元）',
+              data: a.map(x => +x.ual.toFixed(1)),
+              backgroundColor: '#fb7185',
+              stack: 'aal',
+              borderRadius: 4,
+              order: 2,
+              yAxisID: 'y'
+            },
+            {
+              type: 'line',
+              label: '已提存比率（%，右軸）',
+              data: a.map(x => x.funded),
+              borderColor: '#4f46e5',
+              backgroundColor: '#4f46e5',
+              borderWidth: 3,
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              tension: 0.2,
+              order: 1,
+              yAxisID: 'y1'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { position: 'top', labels: { usePointStyle: true } },
+            tooltip: {
+              callbacks: {
+                label: ctx => ctx.dataset.yAxisID === 'y1'
+                  ? `${ctx.dataset.label}: ${ctx.parsed.y}%`
+                  : `${ctx.dataset.label}: ${fmt(ctx.parsed.y)} 億元`
+              }
+            }
+          },
+          scales: {
+            x: { grid: { display: false } },
+            y: {
+              stacked: true,
+              position: 'left',
+              grid: { color: '#f1f5f9' },
+              title: { display: true, text: '精算負債金額（億元）' },
+              ticks: { callback: v => fmt(v) }
+            },
+            y1: {
+              position: 'right',
+              min: 0,
+              max: 50,
+              grid: { drawOnChartArea: false },
+              title: { display: true, text: '提存比率 (%)' },
+              ticks: { callback: v => v + '%' }
+            }
+          }
+        }
+      }, a.map(x => x.n), [
+        { n: '精算負債', d: a.map(x => x.liab), c: '#e11d48' },
+        { n: '已提存基金', d: a.map(x => x.asset), c: '#059669' },
+        { n: '未提存負債', d: a.map(x => x.ual), c: '#d97706' }
+      ]);
+    }
+
+    function renderPeriodCmp() {
+      const a = REPORTS[$('reportGroup').value];
+      const idxA = +($('cmpA')?.value ?? 1);
+      const idxB = +($('cmpB')?.value ?? 2);
+      const rA = a[idxA];
+      const rB = a[idxB];
+      if (!rA || !rB) return;
+
+      const dLiab = rB.liab - rA.liab;
+      const pLiab = (dLiab / rA.liab * 100).toFixed(1);
+      const dAsset = rB.asset - rA.asset;
+      const dFunded = rB.funded - rA.funded;
+      const dUal = rB.ual - rA.ual;
+      let zeroMain = '維持未用罄 (NA)';
+      let zeroSub = `${rA.n}：${rA.zero} → ${rB.n}：${rB.zero}`;
+      if (rA.zero !== 'NA' && rB.zero !== 'NA') {
+        const dz = +rB.zero - +rA.zero;
+        zeroMain = (dz >= 0 ? '+' : '') + dz + ' 年';
+        zeroSub = `${rA.n} (${rA.zero}年) → ${rB.n} (${rB.zero}年)`;
+      }
+
+      $('cmpGrid').innerHTML = `
+        <div class="cmp-card">
+          <div class="l">精算負債 AAL 變化</div>
+          <div class="v ${dLiab > 0 ? 'neg' : 'pos'}">${dLiab >= 0 ? '+' : ''}${fmt(dLiab)} 億</div>
+          <div class="s">變動幅度 ${dLiab >= 0 ? '+' : ''}${pLiab}%（${fmt(rA.liab)} → ${fmt(rB.liab)}）</div>
+        </div>
+        <div class="cmp-card">
+          <div class="l">已提存基金與提存比率差</div>
+          <div class="v ${dAsset >= 0 ? 'pos' : 'neg'}">${dAsset >= 0 ? '+' : ''}${fmt(dAsset)} 億</div>
+          <div class="s">提存率 ${rA.funded}% → ${rB.funded}%（${dFunded >= 0 ? '+' : ''}${dFunded} 個百分點）</div>
+        </div>
+        <div class="cmp-card">
+          <div class="l">未提存負債變化</div>
+          <div class="v ${dUal > 0 ? 'neg' : 'pos'}">${dUal >= 0 ? '+' : ''}${fmt(dUal)} 億</div>
+          <div class="s">${fmt(rA.ual)} 億 → ${fmt(rB.ual)} 億</div>
+        </div>
+        <div class="cmp-card">
+          <div class="l">預估基金用罄年度變化</div>
+          <div class="v ${rA.zero !== 'NA' && rB.zero !== 'NA' && +rB.zero < +rA.zero ? 'neg' : 'pos'}">${zeroMain}</div>
+          <div class="s">${zeroSub}</div>
+        </div>
+      `;
+    }
+
+    const VARIABLES = [
+      {
+        id: 'discount', cat: 'econ', icon: '🧮', title: '折現利率提高 (+0.5%)',
+        sub: '經濟面假設 · 假設：調高 +0.5 個百分點', badge: '中性/結構', badgeCls: 'badge-neu',
+        mech: '提高折現率會降低未來退休金給付的精算現值（AAL），但不會直接改變當年實際流入基金的投資現金，屬於評價結構面參數。',
+        override: () => ({ discount: num('discount') + 0.5 })
+      },
+      {
+        id: 'returnRate', cat: 'econ', icon: '📈', title: '基金投資報酬率提高 (+1.0%)',
+        sub: '經濟面假設 · 假設：調高 +1.0 個百分點', badge: '延後用罄', badgeCls: 'badge-pos',
+        mech: '在基金尚有正餘額時，提高實質報酬率可透過複利效應放大每年投資收益，直接延後基金用罄年度並改善期末淨值。',
+        override: () => ({ returnRate: num('returnRate') + 1.0 })
+      },
+      {
+        id: 'salaryGrowth', cat: 'econ', icon: '💼', title: '薪資成長率提高 (+1.0%)',
+        sub: '經濟面假設 · 假設：調高 +1.0 個百分點', badge: '財務承壓', badgeCls: 'badge-neg',
+        mech: '短期雖使提撥薪資總額略增，但由於退撫給付與退休前本俸高度連動，長期推升的退休給付負債通常大於提撥增幅。',
+        override: () => ({ salaryGrowth: num('salaryGrowth') + 1.0 })
+      },
+      {
+        id: 'longevity', cat: 'demo', icon: '👴', title: '平均餘命延長 (退休死亡率 -10%)',
+        sub: '人口與制度 · 假設：退休死亡率與斜率降 10%', badge: '財務承壓', badgeCls: 'badge-neg',
+        mech: '退休人員領取月退休金的預期餘命拉長，直接拉高年金現值因子（Annuity Factor），推升應計負債與每年給付支出。',
+        override: () => ({ retMort: num('retMort') * 0.9, mortSlope: num('mortSlope') * 0.9 })
+      },
+      {
+        id: 'closedGroup', cat: 'demo', icon: '🔒', title: '初任改個人專戶 (新進人數歸零)',
+        sub: '人口與制度 · 假設：新進人員不再參加舊基金', badge: '財務承壓', badgeCls: 'badge-neg',
+        mech: '112/7/1 後初任公教人員分流至個人專戶，舊基金失去新進人員提撥活水，轉為封閉群體自然萎縮，提早面臨現金流倒掛。',
+        override: () => ({ newEntrants: 0 })
+      },
+      {
+        id: 'funding', cat: 'demo', icon: '🛡️', title: '法定提撥率調高 (+2.0%)',
+        sub: '人口與制度 · 假設：提撥率調高 2 個百分點', badge: '延後用罄', badgeCls: 'badge-pos',
+        mech: '在不改變給付承諾的前提下直接增加每年提撥收入，可縮小正常成本缺口、減緩基金淨流出並延後用罄時間。',
+        override: () => ({ contrib: num('contrib') + 2.0 })
+      }
+    ];
+    let activeVarId = 'discount';
+    let activeVarCat = 'all';
+
+    function filterVarCat(cat, btn) {
+      activeVarCat = cat;
+      document.querySelectorAll('[data-var-cat]').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      const filtered = VARIABLES.filter(v => cat === 'all' || v.cat === cat);
+      if (filtered.length && !filtered.some(v => v.id === activeVarId)) {
+        activeVarId = filtered[0].id;
+      }
+      renderVarExplorer();
+    }
+
+    function selectVariable(id) {
+      activeVarId = id;
+      renderVarExplorer();
+    }
+
+    function renderVarExplorer() {
+      const listEl = $('varList');
+      const detailEl = $('varDetail');
+      if (!listEl || !detailEl) return;
+
+      const filtered = VARIABLES.filter(v => activeVarCat === 'all' || v.cat === activeVarCat);
+      listEl.innerHTML = filtered.map(v => `
+        <button type="button" class="var-item ${v.id === activeVarId ? 'active' : ''}" onclick="selectVariable('${v.id}')">
+          <div class="var-item-left">
+            <span class="var-icon">${v.icon}</span>
+            <div>
+              <div class="var-title">${v.title}</div>
+              <div class="var-sub">${v.sub}</div>
+            </div>
+          </div>
+          <span class="badge ${v.badgeCls}">${v.badge}</span>
+        </button>
+      `).join('');
+
+      const cur = VARIABLES.find(v => v.id === activeVarId) || filtered[0];
+      if (!cur) return;
+      const baseRes = calc();
+      const altRes = calc(cur.override());
+      const dAal = altRes.aal - baseRes.aal;
+      const dAdc = (altRes.adc - baseRes.adc) * 100;
+      const dEnd = altRes.rows.at(-1).assets - baseRes.rows.at(-1).assets;
+      const baseDep = baseRes.rows.find(x => x.assets < 0);
+      const altDep = altRes.rows.find(x => x.assets < 0);
+
+      detailEl.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:22px">${cur.icon}</span>
+            <h3 style="margin:0;border:0;padding:0;font-size:17px;color:#0f172a">${cur.title}</h3>
+          </div>
+          <span class="badge ${cur.badgeCls}">${cur.badge}</span>
+        </div>
+        <p style="margin:0;font-size:13px;color:#334155;line-height:1.65">${cur.mech}</p>
+        <div style="font-size:12px;font-weight:700;color:#475569">依據目前自訂模型之即時試算量化衝擊：</div>
+        <div class="var-metrics">
+          <div class="var-metric">
+            <div class="l">精算負債 AAL 變化</div>
+            <div class="v ${dAal > 0.05 ? 'neg' : dAal < -0.05 ? 'pos' : ''}">${dAal >= 0 ? '+' : ''}${fmt(dAal)} 億</div>
+          </div>
+          <div class="var-metric">
+            <div class="l">建議提撥率變化</div>
+            <div class="v ${dAdc > 0.05 ? 'neg' : dAdc < -0.05 ? 'pos' : ''}">${dAdc >= 0 ? '+' : ''}${dAdc.toFixed(2)}%</div>
+          </div>
+          <div class="var-metric">
+            <div class="l">期末資產 / 用罄影響</div>
+            <div class="v ${dEnd >= 0 ? 'pos' : 'neg'}">${dEnd >= 0 ? '+' : ''}${fmt(dEnd)} 億</div>
+          </div>
+        </div>
+        <div style="font-size:12px;color:#64748b">
+          基準用罄：<b>${baseDep ? baseDep.year + '年' : '期間內未用罄'}</b> → 變動後：<b>${altDep ? altDep.year + '年' : '期間內未用罄'}</b>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button type="button" class="pri" onclick="$('sec-policy').scrollIntoView({behavior:'smooth'})">前往政策模擬中心</button>
+          <button type="button" class="sec" onclick="$('sec-projection').scrollIntoView({behavior:'smooth'})">前往參數模型調整</button>
+        </div>
+      `;
+    }
+
+    function renderReports() {
+      const a = REPORTS[$('reportGroup').value];
+      $('reportBody').innerHTML = a.map((r, i) =>
+        `<tr>
+          <td>${r.n}</td>
+          <td>${r.date}</td>
+          <td style="text-align:left;white-space:normal;min-width:220px">${r.model}</td>
+          <td>${r.discount}%</td>
+          <td>${fmt(r.liab)}</td>
+          <td>${fmt(r.asset)}</td>
+          <td>${fmt(r.ual)}</td>
+          <td>${r.funded}%</td>
+          <td>${r.zero}</td>
+          <td><button class="sec" type="button" onclick="applyReport(${i})">套用模型</button></td>
+        </tr>`
+      ).join('');
+      renderReportChart();
+      renderPeriodCmp();
+    }
+
+    function applyReport(i) {
+      const r = REPORTS[$('reportGroup').value][i];
+      $('method').value = 'EAN';
+      $('baseYear').value = r.base;
+      $('years').value = 50;
+      $('discount').value = r.discount;
+      $('returnRate').value = r.discount;
+      $('assets').value = r.asset;
+      $('newEntrants').value = r.newE;
+      run();
+      renderVarExplorer();
+      notify(`已套用「${r.n}」主要假設至自訂精算推估模型。`);
+      $('sec-projection').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    const RAW = {"r7_civil":[{"year":107,"rate":12.0,"opening":3613.03973,"contribution":282.29085,"investment":141.70001,"subsidy":0.0,"benefit":423.36971,"net":0.62115,"ending":3613.66088},{"year":108,"rate":12.0,"opening":3613.66088,"contribution":285.74443,"investment":141.19236,"subsidy":0.0,"benefit":453.44823,"net":-26.51144,"ending":3587.14944},{"year":109,"rate":12.0,"opening":3587.14944,"contribution":288.74733,"investment":140.73601,"subsidy":58.19161,"benefit":484.43725,"net":3.2377,"ending":3590.38714},{"year":110,"rate":12.0,"opening":3590.38714,"contribution":291.4708,"investment":141.5596,"subsidy":120.21,"benefit":514.47501,"net":38.7654,"ending":3629.15254},{"year":111,"rate":12.0,"opening":3629.15254,"contribution":293.57067,"investment":143.10464,"subsidy":133.1118,"benefit":529.75551,"net":40.0316,"ending":3669.18414},{"year":112,"rate":12.0,"opening":3669.18414,"contribution":296.51843,"investment":144.75071,"subsidy":166.03223,"benefit":563.3832,"net":43.91816,"ending":3713.1023},{"year":113,"rate":12.0,"opening":3713.1023,"contribution":299.37021,"investment":146.04432,"subsidy":179.00476,"benefit":602.36366,"net":22.05563,"ending":3735.15793},{"year":114,"rate":12.0,"opening":3735.15793,"contribution":301.66065,"investment":146.5317,"subsidy":196.64741,"benefit":642.03904,"net":2.80073,"ending":3737.95866},{"year":115,"rate":12.0,"opening":3737.95866,"contribution":303.7932,"investment":146.23785,"subsidy":212.88,"benefit":680.69819,"net":-17.78715,"ending":3720.17151},{"year":116,"rate":12.0,"opening":3720.17151,"contribution":305.57618,"investment":145.45203,"subsidy":231.94897,"benefit":705.26667,"net":-22.2895,"ending":3697.88201},{"year":117,"rate":12.0,"opening":3697.88201,"contribution":308.19235,"investment":144.35299,"subsidy":248.39,"benefit":734.69684,"net":-33.76149,"ending":3664.12052},{"year":118,"rate":12.0,"opening":3664.12052,"contribution":310.86619,"investment":142.69046,"subsidy":263.23022,"benefit":767.81428,"net":-51.02741,"ending":3613.09312},{"year":119,"rate":12.0,"opening":3613.09312,"contribution":313.2292,"investment":140.17987,"subsidy":272.98356,"benefit":803.40565,"net":-77.01302,"ending":3536.0801},{"year":120,"rate":12.0,"opening":3536.0801,"contribution":315.11369,"investment":136.43155,"subsidy":273.2636,"benefit":838.95986,"net":-114.15102,"ending":3421.92908},{"year":121,"rate":12.0,"opening":3421.92908,"contribution":317.00823,"investment":131.1338,"subsidy":272.32824,"benefit":876.50473,"net":-156.03445,"ending":3265.89462},{"year":122,"rate":12.0,"opening":3265.89462,"contribution":318.66215,"investment":124.1592,"subsidy":270.4237,"benefit":912.91526,"net":-199.67021,"ending":3066.22442},{"year":123,"rate":12.0,"opening":3066.22442,"contribution":320.08255,"investment":115.38506,"subsidy":267.61,"benefit":950.88814,"net":-247.81052,"ending":2818.4139},{"year":124,"rate":12.0,"opening":2818.4139,"contribution":321.446,"investment":104.6958,"subsidy":263.81,"benefit":987.29364,"net":-297.34184,"ending":2521.07206},{"year":125,"rate":12.0,"opening":2521.07206,"contribution":314.50391,"investment":91.91691,"subsidy":259.33,"benefit":1020.13268,"net":-354.38186,"ending":2166.69021},{"year":126,"rate":12.0,"opening":2166.69021,"contribution":316.89681,"investment":77.05679,"subsidy":254.08617,"benefit":1051.52395,"net":-403.48418,"ending":1763.20603},{"year":127,"rate":12.0,"opening":1763.20603,"contribution":319.5657,"investment":60.33835,"subsidy":248.05,"benefit":1077.11043,"net":-449.15638,"ending":1314.04965},{"year":128,"rate":12.0,"opening":1314.04965,"contribution":322.38634,"investment":41.83705,"subsidy":241.44611,"benefit":1100.07946,"net":-494.40997,"ending":819.63967},{"year":129,"rate":12.0,"opening":819.63967,"contribution":324.9433,"investment":21.56834,"subsidy":234.27392,"benefit":1120.07981,"net":-539.29426,"ending":280.34542},{"year":130,"rate":12.0,"opening":280.34542,"contribution":326.99301,"investment":0.0,"subsidy":226.5421,"benefit":1137.53868,"net":-584.00357,"ending":-303.65815},{"year":131,"rate":12.0,"opening":-303.65815,"contribution":328.65252,"investment":0.0,"subsidy":218.29796,"benefit":1154.80062,"net":-607.85014,"ending":-911.50829},{"year":132,"rate":12.0,"opening":-911.50829,"contribution":330.08042,"investment":0.0,"subsidy":209.58204,"benefit":1170.58237,"net":-630.91991,"ending":-1542.4282},{"year":133,"rate":12.0,"opening":-1542.4282,"contribution":331.25436,"investment":0.0,"subsidy":200.52403,"benefit":1185.78362,"net":-654.00523,"ending":-2196.43343},{"year":134,"rate":12.0,"opening":-2196.43343,"contribution":332.32497,"investment":0.0,"subsidy":191.19,"benefit":1200.40579,"net":-676.89082,"ending":-2873.32425},{"year":135,"rate":12.0,"opening":-2873.32425,"contribution":332.7246,"investment":0.0,"subsidy":181.63407,"benefit":1217.21214,"net":-702.85347,"ending":-3576.17772},{"year":136,"rate":12.0,"opening":-3576.17772,"contribution":332.59201,"investment":0.0,"subsidy":171.8741,"benefit":1231.51434,"net":-727.04824,"ending":-4303.22596},{"year":137,"rate":12.0,"opening":-4303.22596,"contribution":332.62354,"investment":0.0,"subsidy":161.93177,"benefit":1243.3206,"net":-748.7653,"ending":-5051.99126},{"year":138,"rate":12.0,"opening":-5051.99126,"contribution":332.49742,"investment":0.0,"subsidy":151.91414,"benefit":1250.9382,"net":-766.52664,"ending":-5818.5179},{"year":139,"rate":12.0,"opening":-5818.5179,"contribution":332.73241,"investment":0.0,"subsidy":141.79584,"benefit":1255.94409,"net":-781.41585,"ending":-6599.93375},{"year":140,"rate":12.0,"opening":-6599.93375,"contribution":332.88229,"investment":0.0,"subsidy":131.71,"benefit":1268.36875,"net":-803.77647,"ending":-7403.71022},{"year":141,"rate":12.0,"opening":-7403.71022,"contribution":332.57287,"investment":0.0,"subsidy":121.67579,"benefit":1274.48013,"net":-820.23147,"ending":-8223.94168},{"year":142,"rate":12.0,"opening":-8223.94168,"contribution":332.27927,"investment":0.0,"subsidy":111.74576,"benefit":1280.44273,"net":-836.4177,"ending":-9060.35938},{"year":143,"rate":12.0,"opening":-9060.35938,"contribution":331.76327,"investment":0.0,"subsidy":102.02,"benefit":1285.6705,"net":-851.88723,"ending":-9912.24661},{"year":144,"rate":12.0,"opening":-9912.24661,"contribution":331.35228,"investment":0.0,"subsidy":92.54,"benefit":1286.39414,"net":-862.50186,"ending":-10774.74847},{"year":145,"rate":12.0,"opening":-10774.74847,"contribution":330.23384,"investment":0.0,"subsidy":83.35433,"benefit":1295.6355,"net":-882.04733,"ending":-11656.79581},{"year":146,"rate":12.0,"opening":-11656.79581,"contribution":329.1212,"investment":0.0,"subsidy":74.52564,"benefit":1301.97923,"net":-898.33239,"ending":-12555.12819},{"year":147,"rate":12.0,"opening":-12555.12819,"contribution":327.17008,"investment":0.0,"subsidy":66.11561,"benefit":1307.78176,"net":-914.49606,"ending":-13469.62426},{"year":148,"rate":12.0,"opening":-13469.62426,"contribution":326.42842,"investment":0.0,"subsidy":58.16558,"benefit":1313.0201,"net":-928.42609,"ending":-14398.05034},{"year":149,"rate":12.0,"opening":-14398.05034,"contribution":325.75324,"investment":0.0,"subsidy":50.72445,"benefit":1314.84971,"net":-938.37203,"ending":-15336.42237},{"year":150,"rate":12.0,"opening":-15336.42237,"contribution":325.02363,"investment":0.0,"subsidy":43.8,"benefit":1320.70472,"net":-951.88109,"ending":-16288.30346},{"year":151,"rate":12.0,"opening":-16288.30346,"contribution":324.7626,"investment":0.0,"subsidy":37.4355,"benefit":1324.9116,"net":-962.7135,"ending":-17251.01696},{"year":152,"rate":12.0,"opening":-17251.01696,"contribution":324.31668,"investment":0.0,"subsidy":31.65453,"benefit":1328.3707,"net":-972.3995,"ending":-18223.41646},{"year":153,"rate":12.0,"opening":-18223.41646,"contribution":323.75139,"investment":0.0,"subsidy":26.44545,"benefit":1331.58223,"net":-981.3854,"ending":-19204.80186},{"year":154,"rate":12.0,"opening":-19204.80186,"contribution":323.23445,"investment":0.0,"subsidy":21.82,"benefit":1333.0696,"net":-988.01516,"ending":-20192.81701},{"year":155,"rate":12.0,"opening":-20192.81701,"contribution":322.68978,"investment":0.0,"subsidy":17.75,"benefit":1334.66117,"net":-994.22139,"ending":-21187.03841},{"year":156,"rate":12.0,"opening":-21187.03841,"contribution":322.39293,"investment":0.0,"subsidy":14.24,"benefit":1337.37975,"net":-1000.74682,"ending":-22187.78523}],"r7_edu":[{"year":107,"rate":15.0,"opening":2121.74005,"contribution":279.68525,"investment":83.8874,"subsidy":0.0,"benefit":328.79515,"net":34.7775,"ending":2156.51756},{"year":108,"rate":15.0,"opening":2156.51756,"contribution":281.50364,"investment":85.06722,"subsidy":0.0,"benefit":341.17772,"net":25.39314,"ending":2181.9107},{"year":109,"rate":15.0,"opening":2181.9107,"contribution":282.85048,"investment":87.22246,"subsidy":70.93,"benefit":356.47885,"net":84.52408,"ending":2266.43478},{"year":110,"rate":15.0,"opening":2266.43478,"contribution":283.16218,"investment":91.64945,"subsidy":144.44,"benefit":377.99945,"net":141.25218,"ending":2407.68696},{"year":111,"rate":15.0,"opening":2407.68696,"contribution":283.63511,"investment":97.07581,"subsidy":154.93,"benefit":400.14856,"net":135.49236,"ending":2543.17932},{"year":112,"rate":15.0,"opening":2543.17932,"contribution":282.78082,"investment":103.17695,"subsidy":215.89,"benefit":426.18203,"net":175.66574,"ending":2718.84506},{"year":113,"rate":15.0,"opening":2718.84506,"contribution":282.38311,"investment":109.7042,"subsidy":224.48,"benefit":459.34306,"net":157.22426,"ending":2876.06932},{"year":114,"rate":15.0,"opening":2876.06932,"contribution":281.78254,"investment":115.58971,"subsidy":241.26,"benefit":495.69584,"net":142.93641,"ending":3019.00573},{"year":115,"rate":15.0,"opening":3019.00573,"contribution":280.86073,"investment":120.76135,"subsidy":253.58,"benefit":534.38446,"net":120.81762,"ending":3139.82335},{"year":116,"rate":15.0,"opening":3139.82335,"contribution":280.05816,"investment":125.1384,"subsidy":271.07,"benefit":573.85467,"net":102.4119,"ending":3242.23525},{"year":117,"rate":15.0,"opening":3242.23525,"contribution":278.31652,"investment":129.23589,"subsidy":285.04,"benefit":586.03248,"net":106.55993,"ending":3348.79518},{"year":118,"rate":15.0,"opening":3348.79518,"contribution":277.0809,"investment":132.95867,"subsidy":299.43,"benefit":626.16789,"net":83.30167,"ending":3432.09685},{"year":119,"rate":15.0,"opening":3432.09685,"contribution":275.6985,"investment":135.6866,"subsidy":311.15,"benefit":666.71211,"net":55.82299,"ending":3487.91984},{"year":120,"rate":15.0,"opening":3487.91984,"contribution":273.83259,"investment":137.31418,"subsidy":322.9,"benefit":706.86306,"net":27.18371,"ending":3515.10355},{"year":121,"rate":15.0,"opening":3515.10355,"contribution":271.79424,"investment":137.42859,"subsidy":319.93,"benefit":750.50191,"net":-21.34908,"ending":3493.75447},{"year":122,"rate":15.0,"opening":3493.75447,"contribution":270.88775,"investment":135.8308,"subsidy":316.05,"benefit":782.9069,"net":-60.13836,"ending":3433.61611},{"year":123,"rate":15.0,"opening":3433.61611,"contribution":269.68556,"investment":133.1148,"subsidy":315.13,"benefit":796.30797,"net":-78.37762,"ending":3355.23849},{"year":124,"rate":15.0,"opening":3355.23849,"contribution":268.84161,"investment":129.19349,"subsidy":309.53,"benefit":829.17427,"net":-121.60918,"ending":3233.62931},{"year":125,"rate":15.0,"opening":3233.62931,"contribution":268.25379,"investment":123.55217,"subsidy":303.0,"benefit":860.90381,"net":-166.09784,"ending":3067.53147},{"year":126,"rate":15.0,"opening":3067.53147,"contribution":263.33517,"investment":116.05466,"subsidy":295.64,"benefit":891.30505,"net":-216.27522,"ending":2851.25625},{"year":127,"rate":15.0,"opening":2851.25625,"contribution":262.65265,"investment":106.59705,"subsidy":287.43,"benefit":922.74246,"net":-266.06276,"ending":2585.1935},{"year":128,"rate":15.0,"opening":2585.1935,"contribution":264.04171,"investment":95.16181,"subsidy":278.5,"benefit":954.83814,"net":-317.13462,"ending":2268.05888},{"year":129,"rate":15.0,"opening":2268.05888,"contribution":264.09933,"investment":81.67215,"subsidy":268.97,"benefit":985.57962,"net":-370.83815,"ending":1897.22073},{"year":130,"rate":15.0,"opening":1897.22073,"contribution":264.11515,"investment":66.0822,"subsidy":259.0,"benefit":1013.44671,"net":-424.24936,"ending":1472.97137},{"year":131,"rate":15.0,"opening":1472.97137,"contribution":263.75948,"investment":48.387,"subsidy":248.78,"benefit":1039.13219,"net":-478.20571,"ending":994.76566},{"year":132,"rate":15.0,"opening":994.76566,"contribution":263.94505,"investment":28.62035,"subsidy":238.38,"benefit":1060.839,"net":-529.8936,"ending":464.87206},{"year":133,"rate":15.0,"opening":464.87206,"contribution":264.91186,"investment":6.87487,"subsidy":227.74,"benefit":1078.65253,"net":-579.1258,"ending":-114.25374},{"year":134,"rate":15.0,"opening":-114.25374,"contribution":266.3104,"investment":0.0,"subsidy":216.94,"benefit":1092.09608,"net":-608.84568,"ending":-723.09942},{"year":135,"rate":15.0,"opening":-723.09942,"contribution":268.60075,"investment":0.0,"subsidy":206.04,"benefit":1100.14494,"net":-625.50418,"ending":-1348.6036},{"year":136,"rate":15.0,"opening":-1348.6036,"contribution":270.99087,"investment":0.0,"subsidy":195.02,"benefit":1104.56543,"net":-638.55457,"ending":-1987.15817},{"year":137,"rate":15.0,"opening":-1987.15817,"contribution":273.69995,"investment":0.0,"subsidy":184.0,"benefit":1104.50947,"net":-646.80952,"ending":-2633.96769},{"year":138,"rate":15.0,"opening":-2633.96769,"contribution":276.32698,"investment":0.0,"subsidy":172.92,"benefit":1101.86219,"net":-652.61521,"ending":-3286.5829},{"year":139,"rate":15.0,"opening":-3286.5829,"contribution":278.97481,"investment":0.0,"subsidy":161.87,"benefit":1097.41303,"net":-656.56822,"ending":-3943.15111},{"year":140,"rate":15.0,"opening":-3943.15111,"contribution":281.36876,"investment":0.0,"subsidy":150.93,"benefit":1091.27574,"net":-658.97698,"ending":-4602.12809},{"year":141,"rate":15.0,"opening":-4602.12809,"contribution":283.75833,"investment":0.0,"subsidy":140.07,"benefit":1083.01579,"net":-659.18746,"ending":-5261.31555},{"year":142,"rate":15.0,"opening":-5261.31555,"contribution":285.99902,"investment":0.0,"subsidy":129.39,"benefit":1072.8845,"net":-657.49548,"ending":-5918.81103},{"year":143,"rate":15.0,"opening":-5918.81103,"contribution":288.23549,"investment":0.0,"subsidy":118.94,"benefit":1060.84884,"net":-653.67335,"ending":-6572.48438},{"year":144,"rate":15.0,"opening":-6572.48438,"contribution":290.33158,"investment":0.0,"subsidy":108.79,"benefit":1046.78992,"net":-647.66835,"ending":-7220.15272},{"year":145,"rate":15.0,"opening":-7220.15272,"contribution":292.26532,"investment":0.0,"subsidy":98.9,"benefit":1033.56207,"net":-642.39676,"ending":-7862.54948},{"year":146,"rate":15.0,"opening":-7862.54948,"contribution":294.10297,"investment":0.0,"subsidy":89.4,"benefit":1019.33022,"net":-635.82725,"ending":-8498.37673},{"year":147,"rate":15.0,"opening":-8498.37673,"contribution":295.40022,"investment":0.0,"subsidy":80.26,"benefit":1005.18747,"net":-629.52725,"ending":-9127.90398},{"year":148,"rate":15.0,"opening":-9127.90398,"contribution":296.93962,"investment":0.0,"subsidy":71.55,"benefit":991.32322,"net":-622.83361,"ending":-9750.73759},{"year":149,"rate":15.0,"opening":-9750.73759,"contribution":298.12815,"investment":0.0,"subsidy":63.25,"benefit":977.52182,"net":-616.14367,"ending":-10366.88126},{"year":150,"rate":15.0,"opening":-10366.88126,"contribution":299.0375,"investment":0.0,"subsidy":55.53,"benefit":963.81484,"net":-609.24735,"ending":-10976.12861},{"year":151,"rate":15.0,"opening":-10976.12861,"contribution":299.87616,"investment":0.0,"subsidy":48.23,"benefit":951.16171,"net":-603.05555,"ending":-11579.18416},{"year":152,"rate":15.0,"opening":-11579.18416,"contribution":300.58782,"investment":0.0,"subsidy":41.45,"benefit":939.44051,"net":-597.40269,"ending":-12176.58685},{"year":153,"rate":15.0,"opening":-12176.58685,"contribution":301.18703,"investment":0.0,"subsidy":35.29,"benefit":928.67665,"net":-592.19963,"ending":-12768.78648},{"year":154,"rate":15.0,"opening":-12768.78648,"contribution":301.64775,"investment":0.0,"subsidy":29.67,"benefit":919.79158,"net":-588.47383,"ending":-13357.26031},{"year":155,"rate":15.0,"opening":-13357.26031,"contribution":302.04701,"investment":0.0,"subsidy":24.54,"benefit":912.28177,"net":-585.69475,"ending":-13942.95506},{"year":156,"rate":15.0,"opening":-13942.95506,"contribution":302.30946,"investment":0.0,"subsidy":20.05,"benefit":905.89858,"net":-583.53912,"ending":-14526.49418}],"r7_mil":[{"year":107,"rate":12.0,"opening":177.88539,"contribution":93.96982,"investment":6.15066,"subsidy":0.0,"benefit":142.20761,"net":-42.08714,"ending":135.79825},{"year":108,"rate":12.0,"opening":135.79826,"contribution":94.62397,"investment":8.20118,"subsidy":100.0,"benefit":106.16142,"net":96.66374,"ending":232.462},{"year":109,"rate":12.0,"opening":232.462,"contribution":98.95784,"investment":12.24045,"subsidy":108.13931,"benefit":109.99859,"net":109.33901,"ending":341.80101},{"year":110,"rate":12.0,"opening":341.801,"contribution":103.77556,"investment":16.78704,"subsidy":116.27862,"benefit":114.30414,"net":122.53708,"ending":464.33808},{"year":111,"rate":12.0,"opening":464.33808,"contribution":103.94174,"investment":21.77052,"subsidy":124.41711,"benefit":118.50884,"net":131.62053,"ending":595.95861},{"year":112,"rate":12.0,"opening":595.95862,"contribution":105.54831,"investment":27.13695,"subsidy":132.55507,"benefit":123.17305,"net":142.06728,"ending":738.0259},{"year":113,"rate":12.0,"opening":738.0259,"contribution":107.00138,"investment":32.92351,"subsidy":140.68798,"benefit":127.56574,"net":153.04713,"ending":891.07303},{"year":114,"rate":12.0,"opening":891.07303,"contribution":108.85471,"investment":39.15456,"subsidy":148.81781,"benefit":132.09059,"net":164.73648,"ending":1055.80951},{"year":115,"rate":12.0,"opening":1055.8095,"contribution":110.54737,"investment":45.85629,"subsidy":156.94259,"benefit":136.29467,"net":177.05157,"ending":1232.86107},{"year":116,"rate":12.0,"opening":1232.86108,"contribution":112.16316,"investment":53.03962,"subsidy":165.05526,"benefit":140.95982,"net":189.29822,"ending":1422.1593},{"year":117,"rate":12.0,"opening":1422.15929,"contribution":113.681,"investment":60.10925,"subsidy":173.17779,"benefit":175.71471,"net":171.25334,"ending":1593.41263},{"year":118,"rate":12.0,"opening":1593.41263,"contribution":115.17197,"investment":64.05435,"subsidy":81.28174,"benefit":180.5613,"net":79.94676,"ending":1673.35939},{"year":119,"rate":12.0,"opening":1673.3594,"contribution":116.25119,"investment":67.16959,"subsidy":81.28174,"benefit":185.77226,"net":78.93026,"ending":1752.28966},{"year":120,"rate":12.0,"opening":1752.28966,"contribution":116.71973,"investment":70.23313,"subsidy":81.2655,"benefit":190.90801,"net":77.31035,"ending":1829.60001},{"year":121,"rate":12.0,"opening":1829.60001,"contribution":116.62018,"investment":73.22862,"subsidy":81.24572,"benefit":195.63509,"net":75.45943,"ending":1905.05944},{"year":122,"rate":12.0,"opening":1905.05943,"contribution":116.51745,"investment":76.15297,"subsidy":81.20435,"benefit":200.19237,"net":73.68239,"ending":1978.74182},{"year":123,"rate":12.0,"opening":1978.74183,"contribution":116.16165,"investment":78.99241,"subsidy":81.16168,"benefit":205.1863,"net":71.12944,"ending":2049.87127},{"year":124,"rate":12.0,"opening":2049.87127,"contribution":115.65073,"investment":81.71407,"subsidy":81.09091,"benefit":210.78072,"net":67.67499,"ending":2117.54626},{"year":125,"rate":12.0,"opening":2117.54626,"contribution":115.00947,"investment":84.29941,"subsidy":80.96673,"benefit":216.0981,"net":64.17751,"ending":2181.72377},{"year":126,"rate":12.0,"opening":2181.72376,"contribution":114.41172,"investment":86.74803,"subsidy":80.78203,"benefit":221.23996,"net":60.70183,"ending":2242.42559},{"year":127,"rate":12.0,"opening":2242.42559,"contribution":113.88875,"investment":89.08057,"subsidy":80.52705,"benefit":225.23861,"net":58.25776,"ending":2300.68335},{"year":128,"rate":12.0,"opening":2300.68335,"contribution":113.62503,"investment":91.34372,"subsidy":80.14262,"benefit":227.94814,"net":57.16323,"ending":2357.84658},{"year":129,"rate":12.0,"opening":2357.84658,"contribution":113.60772,"investment":93.57116,"subsidy":80.14262,"benefit":230.88556,"net":56.43594,"ending":2414.28252},{"year":130,"rate":12.0,"opening":2414.28252,"contribution":113.80269,"investment":95.74322,"subsidy":79.50126,"benefit":234.7082,"net":54.33896,"ending":2468.62148},{"year":131,"rate":12.0,"opening":2468.62148,"contribution":114.02106,"investment":97.84593,"subsidy":78.64457,"benefit":237.61196,"net":52.8996,"ending":2521.52108},{"year":132,"rate":12.0,"opening":2521.52108,"contribution":114.2724,"investment":99.89289,"subsidy":77.52047,"benefit":240.19044,"net":51.49533,"ending":2573.01641},{"year":133,"rate":12.0,"opening":2573.01641,"contribution":114.64779,"investment":101.88548,"subsidy":76.07339,"benefit":242.47978,"net":50.12688,"ending":2623.14329},{"year":134,"rate":12.0,"opening":2623.14329,"contribution":115.06353,"investment":103.81691,"subsidy":74.01305,"benefit":244.51768,"net":48.37581,"ending":2671.5191},{"year":135,"rate":12.0,"opening":2671.5191,"contribution":115.50016,"investment":105.68386,"subsidy":71.78866,"benefit":246.13412,"net":46.83856,"ending":2718.35766},{"year":136,"rate":12.0,"opening":2718.35766,"contribution":116.01835,"investment":107.49265,"subsidy":69.45597,"benefit":247.55725,"net":45.40971,"ending":2763.76737},{"year":137,"rate":12.0,"opening":2763.76737,"contribution":116.45237,"investment":109.24308,"subsidy":67.04522,"benefit":248.87848,"net":43.86218,"ending":2807.62955},{"year":138,"rate":12.0,"opening":2807.62955,"contribution":116.89226,"investment":110.92717,"subsidy":64.16464,"benefit":249.95766,"net":42.0264,"ending":2849.65595},{"year":139,"rate":12.0,"opening":2849.65595,"contribution":117.18821,"investment":112.59849,"subsidy":64.16464,"benefit":250.74015,"net":43.2112,"ending":2892.86715},{"year":140,"rate":12.0,"opening":2892.86715,"contribution":117.54237,"investment":114.26065,"subsidy":61.01111,"benefit":251.25512,"net":41.55901,"ending":2934.42616},{"year":141,"rate":12.0,"opening":2934.42616,"contribution":117.96196,"investment":115.86031,"subsidy":57.7481,"benefit":251.54679,"net":40.02358,"ending":2974.44974},{"year":142,"rate":12.0,"opening":2974.44974,"contribution":118.43533,"investment":117.4009,"subsidy":54.29209,"benefit":251.58168,"net":38.54665,"ending":3012.99639},{"year":143,"rate":12.0,"opening":3012.99639,"contribution":119.16813,"investment":118.88413,"subsidy":50.44211,"benefit":251.39659,"net":37.09777,"ending":3050.09416},{"year":144,"rate":12.0,"opening":3050.09416,"contribution":119.73142,"investment":120.30316,"subsidy":46.15652,"benefit":250.91809,"net":35.27301,"ending":3085.36717},{"year":145,"rate":12.0,"opening":3085.36718,"contribution":120.1845,"investment":121.64927,"subsidy":41.78122,"benefit":250.2367,"net":33.37829,"ending":3118.74547},{"year":146,"rate":12.0,"opening":3118.74546,"contribution":120.84076,"investment":122.92279,"subsidy":37.27537,"benefit":249.46766,"net":31.57126,"ending":3150.31672},{"year":147,"rate":12.0,"opening":3150.31672,"contribution":121.51088,"investment":124.12999,"subsidy":32.7054,"benefit":248.35043,"net":29.99584,"ending":3180.31256},{"year":148,"rate":12.0,"opening":3180.31257,"contribution":122.14123,"investment":125.27312,"subsidy":28.02776,"benefit":247.13829,"net":28.30382,"ending":3208.61639},{"year":149,"rate":12.0,"opening":3208.61638,"contribution":122.76037,"investment":126.44323,"subsidy":28.02776,"benefit":245.85922,"net":31.37214,"ending":3239.98852},{"year":150,"rate":12.0,"opening":3239.98852,"contribution":123.41005,"investment":127.64893,"subsidy":23.60256,"benefit":244.54319,"net":30.11835,"ending":3270.10687},{"year":151,"rate":12.0,"opening":3270.10687,"contribution":124.07444,"investment":128.81402,"subsidy":19.56581,"benefit":243.15315,"net":29.30112,"ending":3299.40799},{"year":152,"rate":12.0,"opening":3299.40798,"contribution":124.72583,"investment":129.94656,"subsidy":15.57223,"benefit":241.78599,"net":28.45863,"ending":3327.86661},{"year":153,"rate":12.0,"opening":3327.86662,"contribution":125.37028,"investment":131.05688,"subsidy":12.20317,"benefit":240.46279,"net":28.16754,"ending":3356.03416},{"year":154,"rate":12.0,"opening":3356.03416,"contribution":126.02126,"investment":132.1667,"subsidy":9.41876,"benefit":239.17315,"net":28.43357,"ending":3384.46773},{"year":155,"rate":12.0,"opening":3384.46773,"contribution":126.67498,"investment":133.28989,"subsidy":6.78214,"benefit":237.8979,"net":28.84911,"ending":3413.31684},{"year":156,"rate":12.0,"opening":3413.31684,"contribution":127.32264,"investment":134.43706,"subsidy":4.56119,"benefit":236.66442,"net":29.65648,"ending":3442.97332}],"r8_civil":[{"year":110,"rate":13.0,"opening":3894.82379,"contribution":328.73617,"investment":155.11956,"subsidy":118.54287,"benefit":480.94867,"net":121.44993,"ending":4016.27372},{"year":111,"rate":14.0,"opening":4016.27372,"contribution":358.33301,"investment":160.46835,"subsidy":134.23896,"benefit":501.70178,"net":151.33853,"ending":4167.61225},{"year":112,"rate":15.0,"opening":4167.61225,"contribution":388.07177,"investment":167.54965,"subsidy":179.69452,"benefit":525.50819,"net":209.80775,"ending":4377.42},{"year":113,"rate":15.0,"opening":4377.42,"contribution":391.90317,"investment":176.01153,"subsidy":193.93162,"benefit":540.09846,"net":221.74785,"ending":4599.16785},{"year":114,"rate":15.0,"opening":4599.16785,"contribution":394.95484,"investment":184.68402,"subsidy":210.01106,"benefit":569.10075,"net":220.54917,"ending":4819.71702},{"year":115,"rate":15.0,"opening":4819.71702,"contribution":398.02054,"investment":193.33776,"subsidy":228.71651,"benefit":599.28306,"net":220.79175,"ending":5040.50877},{"year":116,"rate":15.0,"opening":5040.50877,"contribution":400.95564,"investment":202.04117,"subsidy":247.64782,"benefit":627.56252,"net":223.08211,"ending":5263.59088},{"year":117,"rate":15.0,"opening":5263.59088,"contribution":403.26138,"investment":210.80406,"subsidy":268.85782,"benefit":659.09773,"net":223.82553,"ending":5487.41642},{"year":118,"rate":15.0,"opening":5487.41642,"contribution":405.59265,"investment":219.47357,"subsidy":288.2809,"benefit":695.02782,"net":218.3193,"ending":5705.73572},{"year":119,"rate":15.0,"opening":5705.73572,"contribution":407.31227,"investment":227.93373,"subsidy":311.65725,"benefit":733.75439,"net":213.14885,"ending":5918.88457},{"year":120,"rate":15.0,"opening":5918.88457,"contribution":408.1868,"investment":236.0021,"subsidy":326.01406,"benefit":771.86476,"net":198.33821,"ending":6117.22278},{"year":121,"rate":15.0,"opening":6117.22278,"contribution":409.02324,"investment":242.81086,"subsidy":316.02022,"benefit":818.94608,"net":148.90824,"ending":6266.13102},{"year":122,"rate":15.0,"opening":6266.13102,"contribution":409.0054,"investment":247.52286,"subsidy":298.39594,"benefit":863.52046,"net":91.40374,"ending":6357.53476},{"year":123,"rate":15.0,"opening":6357.53476,"contribution":408.4852,"investment":250.08326,"subsidy":293.38228,"benefit":912.77378,"net":39.17697,"ending":6396.71173},{"year":124,"rate":15.0,"opening":6396.71173,"contribution":407.32214,"investment":250.51214,"subsidy":287.61288,"benefit":962.75139,"net":-17.30423,"ending":6379.4075},{"year":125,"rate":15.0,"opening":6379.4075,"contribution":384.21518,"investment":248.34435,"subsidy":281.1103,"benefit":1006.92279,"net":-93.25295,"ending":6286.15454},{"year":126,"rate":15.0,"opening":6286.15454,"contribution":385.50302,"investment":243.70743,"subsidy":273.94023,"benefit":1046.38099,"net":-143.23031,"ending":6142.92423},{"year":127,"rate":15.0,"opening":6142.92423,"contribution":388.53375,"investment":237.1988,"subsidy":265.89102,"benefit":1080.33329,"net":-188.70973,"ending":5954.2145},{"year":128,"rate":15.0,"opening":5954.2145,"contribution":392.32083,"investment":228.93921,"subsidy":257.15629,"benefit":1110.94545,"net":-232.52911,"ending":5721.68539},{"year":129,"rate":15.0,"opening":5721.68539,"contribution":395.67452,"investment":219.0023,"subsidy":247.79042,"benefit":1136.7205,"net":-274.25326,"ending":5447.43214},{"year":130,"rate":15.0,"opening":5447.43214,"contribution":398.47701,"investment":207.49975,"subsidy":237.88377,"benefit":1156.23777,"net":-312.37725,"ending":5135.05488},{"year":131,"rate":15.0,"opening":5135.05488,"contribution":400.58487,"investment":194.46266,"subsidy":227.51099,"benefit":1175.07265,"net":-352.51413,"ending":4782.54075},{"year":132,"rate":15.0,"opening":4782.54075,"contribution":402.31186,"investment":179.94146,"subsidy":216.7839,"benefit":1187.10412,"net":-388.0669,"ending":4394.47385},{"year":133,"rate":15.0,"opening":4394.47385,"contribution":403.69911,"investment":163.95896,"subsidy":205.78255,"benefit":1200.48122,"net":-427.04059,"ending":3967.43326},{"year":134,"rate":15.0,"opening":3967.43326,"contribution":404.87672,"investment":146.38412,"subsidy":194.56582,"benefit":1215.10303,"net":-469.27637,"ending":3498.15689},{"year":135,"rate":15.0,"opening":3498.15689,"contribution":405.11585,"investment":127.14604,"subsidy":183.18294,"benefit":1227.31071,"net":-511.86588,"ending":2986.29101},{"year":136,"rate":15.0,"opening":2986.29101,"contribution":404.50185,"investment":106.15473,"subsidy":171.6836,"benefit":1241.03094,"net":-558.69076,"ending":2427.60025},{"year":137,"rate":15.0,"opening":2427.60025,"contribution":404.06906,"investment":83.3454,"subsidy":160.13061,"benefit":1252.13014,"net":-604.58508,"ending":1823.01518},{"year":138,"rate":15.0,"opening":1823.01518,"contribution":403.21052,"investment":58.76061,"subsidy":148.58621,"benefit":1259.79651,"net":-649.23916,"ending":1173.77602},{"year":139,"rate":15.0,"opening":1173.77602,"contribution":403.10707,"investment":32.42508,"subsidy":137.11997,"benefit":1266.52491,"net":-693.87278,"ending":479.90324},{"year":140,"rate":15.0,"opening":479.90324,"contribution":403.88738,"investment":4.39834,"subsidy":125.80581,"benefit":1269.58243,"net":-735.4909,"ending":-255.58767},{"year":141,"rate":15.0,"opening":-255.58767,"contribution":404.05825,"investment":0.0,"subsidy":114.71716,"benefit":1267.00685,"net":-748.23143,"ending":-1003.8191},{"year":142,"rate":15.0,"opening":-1003.8191,"contribution":404.36316,"investment":0.0,"subsidy":103.92518,"benefit":1262.88342,"net":-754.59508,"ending":-1758.41418},{"year":143,"rate":15.0,"opening":-1758.41418,"contribution":404.13786,"investment":0.0,"subsidy":93.49748,"benefit":1261.30615,"net":-763.67082,"ending":-2522.085},{"year":144,"rate":15.0,"opening":-2522.085,"contribution":403.59047,"investment":0.0,"subsidy":83.49852,"benefit":1255.35916,"net":-768.27017,"ending":-3290.35517},{"year":145,"rate":15.0,"opening":-3290.35517,"contribution":402.88626,"investment":0.0,"subsidy":73.98694,"benefit":1249.67996,"net":-772.80676,"ending":-4063.16193},{"year":146,"rate":15.0,"opening":-4063.16193,"contribution":401.90798,"investment":0.0,"subsidy":65.01539,"benefit":1241.26103,"net":-774.33765,"ending":-4837.49959},{"year":147,"rate":15.0,"opening":-4837.49959,"contribution":400.8052,"investment":0.0,"subsidy":56.62901,"benefit":1233.00504,"net":-775.57083,"ending":-5613.07042},{"year":148,"rate":15.0,"opening":-5613.07042,"contribution":399.33425,"investment":0.0,"subsidy":48.86371,"benefit":1229.38992,"net":-781.19197,"ending":-6394.26238},{"year":149,"rate":15.0,"opening":-6394.26238,"contribution":397.57118,"investment":0.0,"subsidy":41.74545,"benefit":1226.52045,"net":-787.20382,"ending":-7181.4662},{"year":150,"rate":15.0,"opening":-7181.4662,"contribution":394.66772,"investment":0.0,"subsidy":35.28973,"benefit":1220.25564,"net":-790.29819,"ending":-7971.76439},{"year":151,"rate":15.0,"opening":-7971.76439,"contribution":395.42362,"investment":0.0,"subsidy":29.50082,"benefit":1211.6311,"net":-786.70666,"ending":-8758.47105},{"year":152,"rate":15.0,"opening":-8758.47105,"contribution":395.45973,"investment":0.0,"subsidy":24.37144,"benefit":1202.11756,"net":-782.28639,"ending":-9540.75744},{"year":153,"rate":15.0,"opening":-9540.75744,"contribution":394.63341,"investment":0.0,"subsidy":19.88334,"benefit":1196.05486,"net":-781.53811,"ending":-10322.29555},{"year":154,"rate":15.0,"opening":-10322.29555,"contribution":393.97094,"investment":0.0,"subsidy":16.00859,"benefit":1193.57678,"net":-783.59725,"ending":-11105.8928},{"year":155,"rate":15.0,"opening":-11105.8928,"contribution":393.19083,"investment":0.0,"subsidy":12.71028,"benefit":1189.70405,"net":-783.80294,"ending":-11889.69574},{"year":156,"rate":15.0,"opening":-11889.69574,"contribution":391.97266,"investment":0.0,"subsidy":9.94363,"benefit":1185.81465,"net":-783.89836,"ending":-12673.5941},{"year":157,"rate":15.0,"opening":-12673.5941,"contribution":390.45837,"investment":0.0,"subsidy":7.6584,"benefit":1184.58824,"net":-786.47147,"ending":-13460.06556},{"year":158,"rate":15.0,"opening":-13460.06556,"contribution":388.68959,"investment":0.0,"subsidy":5.80074,"benefit":1184.96568,"net":-790.47535,"ending":-14250.54092},{"year":159,"rate":15.0,"opening":-14250.54092,"contribution":386.6794,"investment":0.0,"subsidy":4.31643,"benefit":1187.08895,"net":-796.09312,"ending":-15046.63403}],"r9_civil":[{"year":113,"rate":15.0,"opening":4611.56,"contribution":405.06,"investment":208.72,"subsidy":230.45,"benefit":607.31,"net":236.92,"ending":4848.48},{"year":114,"rate":15.0,"opening":4848.48,"contribution":416.27,"investment":217.4,"subsidy":197.8,"benefit":648.74,"net":182.73,"ending":5031.21},{"year":115,"rate":15.0,"opening":5031.21,"contribution":413.15,"investment":225.5,"subsidy":236.93,"benefit":690.17,"net":185.41,"ending":5216.62},{"year":116,"rate":15.0,"opening":5216.62,"contribution":408.83,"investment":233.42,"subsidy":246.76,"benefit":714.8,"net":174.22,"ending":5390.84},{"year":117,"rate":15.0,"opening":5390.84,"contribution":404.96,"investment":240.9,"subsidy":258.34,"benefit":738.28,"net":165.93,"ending":5556.77},{"year":118,"rate":15.0,"opening":5556.76,"contribution":402.32,"investment":247.76,"subsidy":275.33,"benefit":779.5,"net":145.91,"ending":5702.67},{"year":119,"rate":15.0,"opening":5702.67,"contribution":398.56,"investment":253.52,"subsidy":289.13,"benefit":825.3,"net":115.92,"ending":5818.59},{"year":120,"rate":15.0,"opening":5818.59,"contribution":393.58,"investment":257.88,"subsidy":303.11,"benefit":872.49,"net":82.08,"ending":5900.67},{"year":121,"rate":15.0,"opening":5900.66,"contribution":386.89,"investment":260.22,"subsidy":296.63,"benefit":919.51,"net":24.22,"ending":5924.88},{"year":122,"rate":15.0,"opening":5924.89,"contribution":380.67,"investment":260.29,"subsidy":294.11,"benefit":956.15,"net":-21.08,"ending":5903.81},{"year":123,"rate":15.0,"opening":5903.81,"contribution":373.79,"investment":258.05,"subsidy":284.13,"benefit":996.86,"net":-80.9,"ending":5822.91},{"year":124,"rate":15.0,"opening":5822.91,"contribution":364.17,"investment":252.68,"subsidy":273.42,"benefit":1052.97,"net":-162.71,"ending":5660.2},{"year":125,"rate":15.0,"opening":5660.2,"contribution":326.28,"investment":242.91,"subsidy":256.43,"benefit":1107.22,"net":-281.61,"ending":5378.59},{"year":126,"rate":15.0,"opening":5378.59,"contribution":316.24,"investment":228.71,"subsidy":251.73,"benefit":1160.46,"net":-363.78,"ending":5014.81},{"year":127,"rate":15.0,"opening":5014.81,"contribution":307.98,"investment":210.88,"subsidy":245.71,"benefit":1210.86,"net":-446.29,"ending":4568.52},{"year":128,"rate":15.0,"opening":4568.52,"contribution":299.91,"investment":189.39,"subsidy":238.45,"benefit":1258.02,"net":-530.27,"ending":4038.25},{"year":129,"rate":15.0,"opening":4038.25,"contribution":291.79,"investment":164.19,"subsidy":230.26,"benefit":1301.13,"net":-614.88,"ending":3423.37},{"year":130,"rate":15.0,"opening":3423.37,"contribution":283.24,"investment":135.32,"subsidy":221.21,"benefit":1337.07,"net":-697.31,"ending":2726.06},{"year":131,"rate":15.0,"opening":2726.06,"contribution":273.16,"investment":102.71,"subsidy":211.65,"benefit":1371.94,"net":-784.42,"ending":1941.64},{"year":132,"rate":15.0,"opening":1941.65,"contribution":262.85,"investment":66.37,"subsidy":201.67,"benefit":1398.06,"net":-867.17,"ending":1074.48},{"year":133,"rate":15.0,"opening":1074.47,"contribution":251.6,"investment":26.25,"subsidy":191.41,"benefit":1425.09,"net":-955.82,"ending":118.65},{"year":134,"rate":15.0,"opening":118.66,"contribution":239.28,"investment":0.0,"subsidy":180.92,"benefit":1454.93,"net":-1034.72,"ending":-916.06},{"year":135,"rate":15.0,"opening":-916.07,"contribution":225.22,"investment":0.0,"subsidy":170.26,"benefit":1482.51,"net":-1087.02,"ending":-2003.09},{"year":136,"rate":15.0,"opening":-2003.09,"contribution":209.12,"investment":0.0,"subsidy":159.49,"benefit":1512.83,"net":-1144.22,"ending":-3147.31},{"year":137,"rate":15.0,"opening":-3147.31,"contribution":192.99,"investment":0.0,"subsidy":148.65,"benefit":1540.83,"net":-1199.19,"ending":-4346.5},{"year":138,"rate":15.0,"opening":-4346.49,"contribution":176.33,"investment":0.0,"subsidy":137.82,"benefit":1563.21,"net":-1249.06,"ending":-5595.55},{"year":139,"rate":15.0,"opening":-5595.55,"contribution":160.78,"investment":0.0,"subsidy":127.06,"benefit":1582.75,"net":-1294.91,"ending":-6890.46},{"year":140,"rate":15.0,"opening":-6890.46,"contribution":147.38,"investment":0.0,"subsidy":116.44,"benefit":1597.49,"net":-1333.67,"ending":-8224.13},{"year":141,"rate":15.0,"opening":-8224.13,"contribution":133.82,"investment":0.0,"subsidy":106.03,"benefit":1603.75,"net":-1363.9,"ending":-9588.03},{"year":142,"rate":15.0,"opening":-9588.03,"contribution":120.85,"investment":0.0,"subsidy":95.9,"benefit":1606.44,"net":-1389.7,"ending":-10977.73},{"year":143,"rate":15.0,"opening":-10977.73,"contribution":107.06,"investment":0.0,"subsidy":86.11,"benefit":1607.84,"net":-1414.67,"ending":-12392.4},{"year":144,"rate":15.0,"opening":-12392.39,"contribution":93.85,"investment":0.0,"subsidy":76.74,"benefit":1601.63,"net":-1431.04,"ending":-13823.43},{"year":145,"rate":15.0,"opening":-13823.44,"contribution":80.39,"investment":0.0,"subsidy":67.82,"benefit":1595.31,"net":-1447.1,"ending":-15270.54},{"year":146,"rate":15.0,"opening":-15270.53,"contribution":66.8,"investment":0.0,"subsidy":59.42,"benefit":1583.63,"net":-1457.41,"ending":-16727.94},{"year":147,"rate":15.0,"opening":-16727.94,"contribution":53.19,"investment":0.0,"subsidy":51.57,"benefit":1571.34,"net":-1466.59,"ending":-18194.53},{"year":148,"rate":15.0,"opening":-18194.53,"contribution":39.74,"investment":0.0,"subsidy":44.31,"benefit":1558.49,"net":-1474.44,"ending":-19668.97},{"year":149,"rate":15.0,"opening":-19668.96,"contribution":26.77,"investment":0.0,"subsidy":37.67,"benefit":1541.47,"net":-1477.03,"ending":-21145.99},{"year":150,"rate":15.0,"opening":-21145.99,"contribution":15.25,"investment":0.0,"subsidy":31.67,"benefit":1518.5,"net":-1471.58,"ending":-22617.57},{"year":151,"rate":15.0,"opening":-22617.57,"contribution":9.48,"investment":0.0,"subsidy":26.3,"benefit":1488.89,"net":-1453.11,"ending":-24070.68},{"year":152,"rate":15.0,"opening":-24070.69,"contribution":1.87,"investment":0.0,"subsidy":21.56,"benefit":1455.15,"net":-1431.73,"ending":-25502.42},{"year":153,"rate":15.0,"opening":-25502.41,"contribution":0.0,"investment":0.0,"subsidy":17.43,"benefit":1410.55,"net":-1393.12,"ending":-26895.53},{"year":154,"rate":15.0,"opening":-26895.54,"contribution":0.0,"investment":0.0,"subsidy":13.89,"benefit":1361.71,"net":-1347.82,"ending":-28243.36},{"year":155,"rate":15.0,"opening":-28243.36,"contribution":0.0,"investment":0.0,"subsidy":10.9,"benefit":1306.33,"net":-1295.43,"ending":-29538.79},{"year":156,"rate":15.0,"opening":-29538.79,"contribution":0.0,"investment":0.0,"subsidy":8.42,"benefit":1244.51,"net":-1236.1,"ending":-30774.89},{"year":157,"rate":15.0,"opening":-30774.88,"contribution":0.0,"investment":0.0,"subsidy":6.39,"benefit":1181.62,"net":-1175.23,"ending":-31950.11},{"year":158,"rate":15.0,"opening":-31950.11,"contribution":0.0,"investment":0.0,"subsidy":4.76,"benefit":1118.31,"net":-1113.55,"ending":-33063.66},{"year":159,"rate":15.0,"opening":-33063.66,"contribution":0.0,"investment":0.0,"subsidy":3.48,"benefit":1056.01,"net":-1052.53,"ending":-34116.19},{"year":160,"rate":15.0,"opening":-34116.19,"contribution":0.0,"investment":0.0,"subsidy":2.49,"benefit":994.73,"net":-992.24,"ending":-35108.43},{"year":161,"rate":15.0,"opening":-35108.43,"contribution":0.0,"investment":0.0,"subsidy":1.74,"benefit":934.51,"net":-932.77,"ending":-36041.2},{"year":162,"rate":15.0,"opening":-36041.2,"contribution":0.0,"investment":0.0,"subsidy":1.19,"benefit":875.34,"net":-874.15,"ending":-36915.35}],"r9_edu":[{"year":113,"rate":15.0,"opening":2731.3,"contribution":310.28,"investment":125.6,"subsidy":273.47,"benefit":489.17,"net":220.18,"ending":2951.48},{"year":114,"rate":15.0,"opening":2951.47,"contribution":318.08,"investment":133.51,"subsidy":234.28,"benefit":521.56,"net":164.31,"ending":3115.78},{"year":115,"rate":15.0,"opening":3115.78,"contribution":315.11,"investment":140.28,"subsidy":243.27,"benefit":555.46,"net":143.19,"ending":3258.97},{"year":116,"rate":15.0,"opening":3258.97,"contribution":310.94,"investment":146.02,"subsidy":259.18,"benefit":598.21,"net":117.92,"ending":3376.89},{"year":117,"rate":15.0,"opening":3376.9,"contribution":306.74,"investment":151.33,"subsidy":273.92,"benefit":608.69,"net":123.29,"ending":3500.19},{"year":118,"rate":15.0,"opening":3500.19,"contribution":301.94,"investment":156.28,"subsidy":290.54,"benefit":647.16,"net":101.59,"ending":3601.78},{"year":119,"rate":15.0,"opening":3601.78,"contribution":294.72,"investment":160.1,"subsidy":306.18,"benefit":688.83,"net":72.17,"ending":3673.95},{"year":120,"rate":15.0,"opening":3673.95,"contribution":287.81,"investment":162.53,"subsidy":321.3,"benefit":733.54,"net":38.1,"ending":3712.05},{"year":121,"rate":15.0,"opening":3712.05,"contribution":279.42,"investment":162.86,"subsidy":319.18,"benefit":784.57,"net":-23.11,"ending":3688.94},{"year":122,"rate":15.0,"opening":3688.94,"contribution":269.83,"investment":160.66,"subsidy":314.53,"benefit":821.84,"net":-76.83,"ending":3612.11},{"year":123,"rate":15.0,"opening":3612.12,"contribution":258.64,"investment":155.92,"subsidy":305.56,"benefit":858.86,"net":-138.75,"ending":3473.37},{"year":124,"rate":15.0,"opening":3473.37,"contribution":245.65,"investment":148.23,"subsidy":298.3,"benefit":902.53,"net":-210.35,"ending":3263.02},{"year":125,"rate":15.0,"opening":3263.03,"contribution":232.47,"investment":137.25,"subsidy":287.25,"benefit":945.86,"net":-288.9,"ending":2974.13},{"year":126,"rate":15.0,"opening":2974.12,"contribution":209.22,"investment":122.61,"subsidy":281.12,"benefit":989.03,"net":-376.08,"ending":2598.04},{"year":127,"rate":15.0,"opening":2598.04,"contribution":193.48,"investment":104.21,"subsidy":274.0,"benefit":1032.13,"net":-460.45,"ending":2137.59},{"year":128,"rate":15.0,"opening":2137.59,"contribution":181.48,"investment":81.98,"subsidy":265.7,"benefit":1078.81,"net":-549.65,"ending":1587.94},{"year":129,"rate":15.0,"opening":1587.94,"contribution":166.56,"investment":55.65,"subsidy":256.47,"benefit":1125.55,"net":-646.86,"ending":941.08},{"year":130,"rate":15.0,"opening":941.08,"contribution":151.56,"investment":24.97,"subsidy":246.64,"benefit":1170.37,"net":-747.19,"ending":193.89},{"year":131,"rate":15.0,"opening":193.89,"contribution":135.31,"investment":0.0,"subsidy":236.41,"benefit":1214.27,"net":-842.55,"ending":-648.66},{"year":132,"rate":15.0,"opening":-648.66,"contribution":120.32,"investment":0.0,"subsidy":225.79,"benefit":1250.46,"net":-904.34,"ending":-1553.0},{"year":133,"rate":15.0,"opening":-1553.01,"contribution":106.42,"investment":0.0,"subsidy":215.02,"benefit":1284.55,"net":-963.11,"ending":-2516.12},{"year":134,"rate":15.0,"opening":-2516.11,"contribution":93.69,"investment":0.0,"subsidy":204.15,"benefit":1312.69,"net":-1014.86,"ending":-3530.97},{"year":135,"rate":15.0,"opening":-3530.97,"contribution":83.29,"investment":0.0,"subsidy":193.2,"benefit":1333.52,"net":-1057.02,"ending":-4587.99},{"year":136,"rate":15.0,"opening":-4587.99,"contribution":73.84,"investment":0.0,"subsidy":182.22,"benefit":1348.0,"net":-1091.93,"ending":-5679.92},{"year":137,"rate":15.0,"opening":-5679.92,"contribution":65.93,"investment":0.0,"subsidy":171.25,"benefit":1355.18,"net":-1118.01,"ending":-6797.93},{"year":138,"rate":15.0,"opening":-6797.94,"contribution":58.47,"investment":0.0,"subsidy":160.32,"benefit":1355.71,"net":-1136.92,"ending":-7934.86},{"year":139,"rate":15.0,"opening":-7934.86,"contribution":51.53,"investment":0.0,"subsidy":149.48,"benefit":1352.15,"net":-1151.14,"ending":-9086.0},{"year":140,"rate":15.0,"opening":-9086.0,"contribution":45.01,"investment":0.0,"subsidy":138.78,"benefit":1343.26,"net":-1159.47,"ending":-10245.47},{"year":141,"rate":15.0,"opening":-10245.46,"contribution":39.12,"investment":0.0,"subsidy":128.28,"benefit":1329.02,"net":-1161.63,"ending":-11407.09},{"year":142,"rate":15.0,"opening":-11407.09,"contribution":33.48,"investment":0.0,"subsidy":118.0,"benefit":1310.58,"net":-1159.11,"ending":-12566.2},{"year":143,"rate":15.0,"opening":-12566.19,"contribution":28.47,"investment":0.0,"subsidy":108.0,"benefit":1288.02,"net":-1151.55,"ending":-13717.74},{"year":144,"rate":15.0,"opening":-13717.75,"contribution":24.05,"investment":0.0,"subsidy":98.31,"benefit":1260.31,"net":-1137.95,"ending":-14855.7},{"year":145,"rate":15.0,"opening":-14855.69,"contribution":20.13,"investment":0.0,"subsidy":88.98,"benefit":1229.99,"net":-1120.88,"ending":-15976.57},{"year":146,"rate":15.0,"opening":-15976.57,"contribution":16.63,"investment":0.0,"subsidy":80.04,"benefit":1198.63,"net":-1101.96,"ending":-17078.53},{"year":147,"rate":15.0,"opening":-17078.53,"contribution":13.4,"investment":0.0,"subsidy":71.51,"benefit":1164.2,"net":-1079.29,"ending":-18157.82},{"year":148,"rate":15.0,"opening":-18157.82,"contribution":10.16,"investment":0.0,"subsidy":63.43,"benefit":1127.3,"net":-1053.71,"ending":-19211.53},{"year":149,"rate":15.0,"opening":-19211.53,"contribution":7.13,"investment":0.0,"subsidy":55.81,"benefit":1087.84,"net":-1024.9,"ending":-20236.43},{"year":150,"rate":15.0,"opening":-20236.43,"contribution":4.43,"investment":0.0,"subsidy":48.69,"benefit":1046.13,"net":-993.01,"ending":-21229.44},{"year":151,"rate":15.0,"opening":-21229.44,"contribution":2.92,"investment":0.0,"subsidy":42.07,"benefit":1001.76,"net":-956.77,"ending":-22186.21},{"year":152,"rate":15.0,"opening":-22186.21,"contribution":0.01,"investment":0.0,"subsidy":35.97,"benefit":955.58,"net":-919.6,"ending":-23105.81},{"year":153,"rate":15.0,"opening":-23105.81,"contribution":0.0,"investment":0.0,"subsidy":30.41,"benefit":906.04,"net":-875.63,"ending":-23981.44},{"year":154,"rate":15.0,"opening":-23981.45,"contribution":0.0,"investment":0.0,"subsidy":25.38,"benefit":854.37,"net":-828.99,"ending":-24810.44},{"year":155,"rate":15.0,"opening":-24810.44,"contribution":0.0,"investment":0.0,"subsidy":20.9,"benefit":800.42,"net":-779.52,"ending":-25589.96},{"year":156,"rate":15.0,"opening":-25589.96,"contribution":0.0,"investment":0.0,"subsidy":16.95,"benefit":746.67,"net":-729.72,"ending":-26319.68},{"year":157,"rate":15.0,"opening":-26319.68,"contribution":0.0,"investment":0.0,"subsidy":13.53,"benefit":693.46,"net":-679.94,"ending":-26999.62},{"year":158,"rate":15.0,"opening":-26999.61,"contribution":0.0,"investment":0.0,"subsidy":10.61,"benefit":641.16,"net":-630.56,"ending":-27630.17},{"year":159,"rate":15.0,"opening":-27630.17,"contribution":0.0,"investment":0.0,"subsidy":8.15,"benefit":590.05,"net":-581.89,"ending":-28212.06},{"year":160,"rate":15.0,"opening":-28212.07,"contribution":0.0,"investment":0.0,"subsidy":6.14,"benefit":540.41,"net":-534.27,"ending":-28746.34},{"year":161,"rate":15.0,"opening":-28746.34,"contribution":0.0,"investment":0.0,"subsidy":4.52,"benefit":492.51,"net":-487.99,"ending":-29234.33},{"year":162,"rate":15.0,"opening":-29234.33,"contribution":0.0,"investment":0.0,"subsidy":3.24,"benefit":446.58,"net":-443.33,"ending":-29677.66}]};
+
+    const ASSUMPTIONS = [
+      ['精算成本法', 'EAN負債／綜合成本法提撥', 'EAN負債／綜合成本法提撥', 'EAN負債／綜合成本法提撥', '影響正常成本、AAL與最適提撥率'],
+      ['評估期間', '未來50年', '未來50年', '未來50年', '決定用罄年度觀察範圍'],
+      ['折現率', '4.0%', '4.0%', '4.5%', '折現率提高通常降低現值負債'],
+      ['資產報酬率', '4.0%', '4.0%', '4.5%基準情境', '影響投資收益及基金存續'],
+      ['公教新進人員', '持續加入基金', '持續加入基金', '112/7/1後初任改個人專戶', '第9次公教基金轉為近似封閉群體'],
+      ['現金流單位', '千元', '千元', '千元', '工具統一轉為億元']
+    ];
+
+    const DIFFS = [
+      ['基準日', '106/12/31', '109/12/31', '112/12/31', '每3年重估一次'],
+      ['公務AAL(億元)', '13,245.87', '14,586', '17,311.16', '負債持續增加'],
+      ['教育AAL(億元)', '12,370.09', '13,366', '16,028.55', '負債持續增加'],
+      ['公務提存比率', '27%', '27%', '27%', '比率大致持平'],
+      ['教育提存比率', '17%', '16%', '17%', '維持低檔'],
+      ['公務餘額轉負年度', '130', '140', '134', '第9次較第8次提前6年'],
+      ['教育餘額轉負年度', '129', '137', '131', '第9次較第8次提前6年']
+    ];
+
+    function rawKey() {
+      return $('rawReport').value + '_' + $('rawGroup').value;
+    }
+
+    function currentRaw() {
+      return imported[rawKey()] || RAW[rawKey()] || [];
+    }
+
+    function renderRaw() {
+      const a = currentRaw();
+      $('rawCashBody').innerHTML = a.length
+        ? a.map(x =>
+          `<tr>
+            <td>${x.year}</td>
+            <td>${x.rate ?? ''}%</td>
+            ${['opening', 'contribution', 'investment', 'subsidy', 'benefit', 'net', 'ending']
+              .map(k => `<td class="${x[k] < 0 ? 'neg' : ''}">${fmt(+x[k] || 0)}</td>`).join('')}
+            <td>${imported[rawKey()] ? '使用者匯入' : '報告附錄'}</td>
+          </tr>`
+        ).join('')
+        : '<tr><td colspan="10" style="text-align:center">此組合尚未內建逐年表，請匯入報告附錄 CSV</td></tr>';
+      $('assumptionBody').innerHTML = ASSUMPTIONS
+        .map(r => '<tr>' + r.map((x, i) => `<td style="text-align:${i ? 'left' : 'center'}">${x}</td>`).join('') + '</tr>')
+        .join('');
+      $('diffBody').innerHTML = DIFFS
+        .map(r => '<tr>' + r.map((x, i) => `<td style="text-align:${i ? 'left' : 'center'}">${x}</td>`).join('') + '</tr>')
+        .join('');
+    }
+
+    function importCash(f) {
+      if (!f) return;
+      const rd = new FileReader();
+      rd.onload = () => {
+        const ls = rd.result.replace(/^\ufeff/, '').replace(/\r\n?/g, '\n').split('\n').map(s => s.trim()).filter(Boolean);
+        if (ls.length < 2) {
+          notify('匯入失敗：CSV 內容為空或缺少資料列。', true);
+          return;
+        }
+        ls.shift();
+        const parsed = [];
+        for (const z of ls) {
+          const v = z.split(',').map(s => s.trim());
+          if (v.length < 9) continue;
+          const row = {
+            year: +v[0],
+            rate: +v[1],
+            opening: +v[2],
+            contribution: +v[3],
+            investment: +v[4],
+            subsidy: +v[5],
+            benefit: +v[6],
+            net: +v[7],
+            ending: +v[8]
+          };
+          if (Number.isFinite(row.year) && Number.isFinite(row.ending)) parsed.push(row);
+        }
+        if (!parsed.length) {
+          notify('匯入失敗：未解析出有效現金流資料列。', true);
+          return;
+        }
+        imported[rawKey()] = parsed;
+        localStorage.setItem('actuarialRawImports', JSON.stringify(imported));
+        renderRaw();
+        notify(`已匯入 ${parsed.length} 筆逐年現金流資料。`);
+      };
+      rd.readAsText(f);
+    }
+
+    function exportCurrentCash() {
+      const a = currentRaw();
+      const h = '年度,提撥率,期初資產(億元),提撥收入(億元),投資收益(億元),政府挹注(億元),給付支出(億元),淨現金流(億元),期末餘額(億元)';
+      dl(rawKey() + '_現金流.csv', '\ufeff' + [h, ...a.map(x => [
+        x.year, x.rate, x.opening, x.contribution, x.investment, x.subsidy, x.benefit, x.net, x.ending
+      ].join(','))].join('\n'), 'text/csv');
+    }
+
+    function exportAssumptions() {
+      dl('第7至9次精算原始假設.json', JSON.stringify(ASSUMPTIONS, null, 2), 'application/json');
+    }
+
+    function exportDifferences() {
+      dl('第7至9次模型差異與結果.csv', '\ufeff' + ['比較面向,第7次,第8次,第9次,分析', ...DIFFS.map(r => r.join(','))].join('\n'), 'text/csv');
+    }
+
+    function exportPackage() {
+      dl('退撫基金精算分析完整資料包.json', JSON.stringify({
+        generated: new Date().toISOString(),
+        reports: REPORTS,
+        assumptions: ASSUMPTIONS,
+        differences: DIFFS,
+        embeddedCashflows: RAW,
+        imports: imported,
+        scenario: rows
+      }, null, 2), 'application/json');
+    }
+
+    try {
+      imported = JSON.parse(localStorage.getItem('actuarialRawImports')) || {};
+    } catch (e) {}
+
+    function policyBase() {
+      const key = $('polBase').value;
+      if (key === 'model') {
+        return rows.map((x, i) => ({
+          year: x.year,
+          opening: i === 0 ? num('assets') : rows[i - 1].assets,
+          contribution: x.contrib,
+          investment: x.investment,
+          subsidy: x.subsidy,
+          benefit: x.benefit,
+          net: x.contrib + x.investment + x.subsidy - x.benefit,
+          ending: x.assets,
+          rate: num('contrib')
+        }));
+      }
+      return RAW[key] || [];
+    }
+
+    function defaultBaseReturn(key) {
+      if (key === 'model') return pct('returnRate');
+      if (key.startsWith('r9_')) return 0.045;
+      return 0.04;
+    }
+
+    function renderPolicyChart() {
+      if (!policyRows.length) return;
+      const labs = policyRows.map(x => x.year + '年');
+      mountChart('policyChart', {
+        type: 'line',
+        data: {
+          labels: labs,
+          datasets: [
+            {
+              label: '政策後餘額（億元）',
+              data: policyRows.map(x => +x.ending.toFixed(1)),
+              borderColor: '#4f46e5',
+              backgroundColor: 'rgba(79, 70, 229, 0.10)',
+              fill: true,
+              tension: 0.25,
+              pointRadius: 0,
+              borderWidth: 2.8
+            },
+            {
+              label: '基準餘額（億元）',
+              data: policyRows.map(x => +x.base.toFixed(1)),
+              borderColor: '#94a3b8',
+              borderDash: [5, 5],
+              tension: 0.25,
+              pointRadius: 0,
+              borderWidth: 2
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8 } },
+            tooltip: {
+              callbacks: {
+                label: ctx => `${ctx.dataset.label}: ${fmt(ctx.parsed.y)} 億元`,
+                afterBody: items => {
+                  const i = items[0]?.dataIndex;
+                  if (i == null || !policyRows[i]) return '';
+                  return `政策差額: ${fmt(policyRows[i].diff)} 億元`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } },
+            y: {
+              grid: {
+                color: ctx => ctx.tick.value === 0 ? '#64748b' : '#f1f5f9',
+                lineWidth: ctx => ctx.tick.value === 0 ? 1.5 : 1
+              },
+              ticks: { callback: v => fmt(v) }
+            }
+          }
+        }
+      }, policyRows.map(x => x.year), [
+        { n: '基準餘額', d: policyRows.map(x => x.base), c: '#94a3b8' },
+        { n: '政策後餘額', d: policyRows.map(x => x.ending), c: '#4f46e5' }
+      ]);
+    }
+
+    function applyPolicyPreset(preset, btn) {
+      document.querySelectorAll('#polPresets .chip').forEach(c => c.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+
+      $('polStart').value = 116;
+      $('polContrib').value = 0;
+      $('polSub').value = 0;
+      $('polSubGrowth').value = 0;
+      $('polReturn').value = 0;
+      $('polBenefit').value = 0;
+      $('polRetAge').value = 0;
+      $('polReturnEntrants').value = 0;
+      $('polLump').value = 0;
+
+      if (preset === 'contrib2') $('polContrib').value = 2;
+      else if (preset === 'sub300') $('polSub').value = 300;
+      else if (preset === 'sub500') $('polSub').value = 500;
+      else if (preset === 'ret1') $('polReturn').value = 1;
+      else if (preset === 'entrants100') $('polReturnEntrants').value = 100;
+      else if (preset === 'combo') {
+        $('polContrib').value = 2;
+        $('polSub').value = 200;
+      }
+      syncPolicySliders();
+      simulatePolicy();
+    }
+
+    function simulatePolicy(quiet = false) {
+      const baseKey = $('polBase').value;
+      const b = policyBase();
+      if (!b.length) {
+        if (!quiet) notify('此基準尚無現金流資料。', true);
+        return [];
+      }
+      const st = +$('polStart').value;
+      const addRate = +$('polContrib').value / 100;
+      const sub0 = +$('polSub').value;
+      const subg = +$('polSubGrowth').value / 100;
+      const retAdj = +$('polReturn').value / 100;
+      const benAdj = +$('polBenefit').value / 100;
+      const delay = +$('polRetAge').value;
+      const returnE = +$('polReturnEntrants').value / 100;
+      const lump = +$('polLump').value;
+      const lumpY = +$('polLumpYear').value;
+      const fallbackRate = defaultBaseReturn(baseKey);
+
+      let asset = b[0].opening;
+      let cost = 0;
+      policyRows = b.map((x, i) => {
+        const active = x.year >= st;
+        const baseRate = Math.max(0.001, (x.rate || 15) / 100);
+        const con = x.contribution * (active ? (1 + addRate / baseRate) * (1 + 0.006 * delay) * (1 + 0.12 * returnE) : 1);
+        const benefit = x.benefit * (active ? (1 + benAdj) * (1 - 0.015 * delay * Math.max(0, 1 - i / 10)) : 1);
+        const polSub = active ? sub0 * Math.pow(1 + subg, Math.max(0, x.year - st)) : 0;
+        const lumpSub = x.year === lumpY ? lump : 0;
+        const sub = x.subsidy + polSub + lumpSub;
+
+        let rr = (x.opening > 0 && x.investment > 0) ? (x.investment / x.opening) : fallbackRate;
+        rr += active ? retAdj : 0;
+
+        const pre = asset + con + sub - benefit;
+        const inv = Math.max(0, (asset + pre) / 2) * rr;
+        const end = pre + inv;
+        const r = {
+          year: x.year,
+          base: x.ending,
+          ending: end,
+          contribution: con,
+          benefit,
+          investment: inv,
+          subsidy: sub,
+          diff: end - x.ending
+        };
+        asset = end;
+        cost += sub;
+        return r;
+      });
+
+      if (!quiet) {
+        const bd = b.find(x => x.ending < 0);
+        const pd = policyRows.find(x => x.ending < 0);
+        const last = policyRows.at(-1);
+        $('polBaseDep').textContent = bd ? bd.year + '年' : '期間內未用罄';
+        $('polDep').textContent = pd ? pd.year + '年' : '期間內未用罄';
+        $('polDep').className = 'v ' + (pd ? 'neg' : 'pos');
+        $('polEnd').textContent = fmt(last.ending) + ' 億';
+        $('polEnd').className = 'v ' + (last.ending < 0 ? 'neg' : 'pos');
+        $('polCost').textContent = fmt(cost) + ' 億';
+        const delayTxt = !bd
+          ? (pd ? '提前用罄' : '皆未用罄')
+          : (pd ? (pd.year - bd.year) + ' 年' : '≥ ' + (last.year - bd.year) + ' 年');
+        $('polDelay').textContent = delayTxt;
+
+        $('policyBody').innerHTML = policyRows.map(x =>
+          `<tr>
+            <td>${x.year}</td>
+            <td>${fmt(x.base)}</td>
+            <td class="${x.ending < 0 ? 'neg' : 'pos'}">${fmt(x.ending)}</td>
+            <td>${fmt(x.contribution)}</td>
+            <td>${fmt(x.benefit)}</td>
+            <td>${fmt(x.investment)}</td>
+            <td>${fmt(x.subsidy)}</td>
+            <td class="${x.diff >= 0 ? 'pos' : 'neg'}">${fmt(x.diff)}</td>
+          </tr>`
+        ).join('');
+        renderPolicyChart();
+      }
+      return policyRows;
+    }
+
+    function findMinimumSubsidy() {
+      const target = +$('polTarget').value;
+      const origSub = $('polSub').value;
+      let lo = 0;
+      let hi = 2000;
+      const check = val => {
+        $('polSub').value = val;
+        const a = simulatePolicy(true);
+        const at = a.find(x => x.year >= target) || a.at(-1);
+        return at && at.ending >= 0;
+      };
+
+      if (!check(hi)) {
+        while (hi < 20000 && !check(hi)) hi *= 2;
+        if (!check(hi)) {
+          $('polSub').value = origSub;
+          simulatePolicy(false);
+          notify(`即使每年新增撥補 ${fmt(hi)} 億元，仍無法維持至 ${target} 年度。`, true);
+          return;
+        }
+      }
+
+      for (let k = 0; k < 28; k++) {
+        const mid = (lo + hi) / 2;
+        if (check(mid)) hi = mid;
+        else lo = mid;
+      }
+      $('polSub').value = hi.toFixed(1);
+      syncPolicySliders();
+      simulatePolicy(false);
+      notify(`依目前近似模型，每年約需新增撥補 ${hi.toFixed(1)} 億元，才能維持至 ${target} 年度。`);
+    }
+
+    const SLIDER_PAIRS = [
+      ['polContrib', 'polContribRange'],
+      ['polSub', 'polSubRange'],
+      ['polReturn', 'polReturnRange'],
+      ['polReturnEntrants', 'polReturnEntrantsRange']
+    ];
+
+    function syncPolicySliders() {
+      SLIDER_PAIRS.forEach(([numId, rangeId]) => {
+        if ($(numId) && $(rangeId)) $(rangeId).value = $(numId).value;
+      });
+    }
+
+    function bindLiveControls() {
+      SLIDER_PAIRS.forEach(([numId, rangeId]) => {
+        const numEl = $(numId);
+        const rangeEl = $(rangeId);
+        if (!numEl || !rangeEl) return;
+        rangeEl.addEventListener('input', () => {
+          numEl.value = rangeEl.value;
+          simulatePolicy();
+        });
+        numEl.addEventListener('input', () => {
+          rangeEl.value = numEl.value;
+        });
+      });
+
+      let polTimer = null;
+      document.querySelectorAll('#sec-policy input:not(.range-slider), #sec-policy select').forEach(el => {
+        el.addEventListener('input', () => {
+          clearTimeout(polTimer);
+          polTimer = setTimeout(() => simulatePolicy(), 120);
+        });
+      });
+
+      let modelTimer = null;
+      document.querySelectorAll('aside.panel input, aside.panel select').forEach(el => {
+        el.addEventListener('input', () => {
+          clearTimeout(modelTimer);
+          modelTimer = setTimeout(() => {
+            run();
+            renderVarExplorer();
+          }, 150);
+        });
+      });
+    }
+
+    function savePolicyCase() {
+      const ids = [
+        'polBase', 'polStart', 'polContrib', 'polSub', 'polSubGrowth',
+        'polReturn', 'polBenefit', 'polRetAge', 'polReturnEntrants',
+        'polLump', 'polLumpYear', 'polTarget'
+      ];
+      const o = {};
+      ids.forEach(id => o[id] = $(id).value);
+      localStorage.setItem('actuarialPolicyCase', JSON.stringify(o));
+      notify('政策方案已儲存於此瀏覽器。');
+    }
+
+    function exportPolicy() {
+      if (!policyRows.length) simulatePolicy();
+      const h = '年度,基準餘額,政策後餘額,提撥收入,給付支出,投資收益,政府挹注,政策差額';
+      dl('政策模擬結果.csv', '\ufeff' + [h, ...policyRows.map(x => [
+        x.year, x.base, x.ending, x.contribution, x.benefit, x.investment, x.subsidy, x.diff
+      ].join(','))].join('\n'), 'text/csv');
+    }
+
+    try {
+      const o = JSON.parse(localStorage.getItem('actuarialPolicyCase'));
+      if (o) Object.keys(o).forEach(id => $(id) && ($(id).value = o[id]));
+    } catch (e) {}
+
+    function resetDefaults() {
+      const inputs = document.querySelectorAll('aside.panel input');
+      inputs.forEach(el => { el.value = el.defaultValue; });
+      $('method').value = 'PUC';
+      $('stressBox').style.display = 'none';
+      run();
+      renderVarExplorer();
+      notify('已恢復左側精算假設預設值。');
+    }
+
+    let resizeTimer = null;
+    window.addEventListener('resize', () => {
+      if (typeof Chart !== 'undefined') return;
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        renderProjectionCharts();
+        renderReportChart();
+        renderPolicyChart();
+        renderStressChart();
+      }, 120);
+    });
+
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+
+    renderHero('civil');
+    renderReports();
+    renderVarExplorer();
+    syncPolicySliders();
+    bindLiveControls();
+    simulatePolicy();
+    run();
+    renderRaw();
+  </script>
+</body>
+</html>
