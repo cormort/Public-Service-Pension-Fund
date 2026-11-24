@@ -2068,11 +2068,12 @@
         const lumpSub = x.year === lumpY ? lump : 0;
         const sub = x.subsidy + polSub + lumpSub;
 
-        let rr = (x.opening > 0 && x.investment > 0) ? (x.investment / x.opening) : fallbackRate;
-        rr += active ? retAdj : 0;
-
         const pre = asset + con + sub - benefit;
-        const inv = Math.max(0, (asset + pre) / 2) * rr;
+        const baseAvg = Math.max(0, x.opening + (x.contribution + x.subsidy - x.benefit) / 2);
+        const policyAvg = Math.max(0, (asset + pre) / 2);
+        const inv = policyAvg <= 0
+          ? 0
+          : Math.max(0, x.investment + (policyAvg - baseAvg) * fallbackRate + policyAvg * (active ? retAdj : 0));
         const end = pre + inv;
         const r = {
           year: x.year,
